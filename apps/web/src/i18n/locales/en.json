@@ -5364,5 +5364,21 @@
       "ultra": "Ultra",
       "ultra_lite": "Ultra Lite"
     }
+  },
+  "readonly": {
+    "key_title": "Read-only access",
+    "key_description": "Share one key for the existing management interface in read-only mode. Credentials are redacted and changes are disabled. Revocation takes effect immediately.",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "generate": "Generate key",
+    "rotate": "Rotate key",
+    "disable": "Disable key",
+    "once": "Copy this key now. It is shown only once. Rotating invalidates the previous key.",
+    "copy": "Copy",
+    "copy_error": "Could not copy. Please select and copy the key.",
+    "badge": "Read only",
+    "login_key_label": "Access key",
+    "login_key_placeholder": "Enter an administrator or read-only key",
+    "login_key_hint": "Administrator keys manage settings. Read-only keys view the same interface with credentials redacted and changes disabled."
   }
 }

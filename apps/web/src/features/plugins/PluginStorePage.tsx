@@ -162,8 +162,8 @@ function PluginInstallOptionsModal({
   const [releaseVersions, setReleaseVersions] = useState<PluginReleaseVersion[]>(
     () => cachedReleaseVersions ?? []
   );
-  const [releaseLoading, setReleaseLoading] = useState(
-    () => Boolean(entryKey && releasePageURL && !cachedReleaseVersions)
+  const [releaseLoading, setReleaseLoading] = useState(() =>
+    Boolean(entryKey && releasePageURL && !cachedReleaseVersions)
   );
   const [releaseError, setReleaseError] = useState('');
 
@@ -199,9 +199,7 @@ function PluginInstallOptionsModal({
   );
   const visibleReleaseVersions = useMemo(
     () =>
-      showPrerelease
-        ? releaseVersions
-        : releaseVersions.filter((release) => !release.prerelease),
+      showPrerelease ? releaseVersions : releaseVersions.filter((release) => !release.prerelease),
     [releaseVersions, showPrerelease]
   );
   const latestRelease = stableReleaseVersions[0] ?? releaseVersions[0] ?? null;
@@ -256,11 +254,12 @@ function PluginInstallOptionsModal({
       : t('plugin_store.install_version_latest');
   const hasPrereleaseVersions = releaseVersions.some((release) => release.prerelease);
   const releaseModeDisabled = installing || (releaseLoading && releaseVersions.length === 0);
-  const releaseStatusMessage = supportsVersionSelection && !releasePageURL
-    ? t('plugin_store.install_version_non_github')
-    : releaseError
-      ? `${t('plugin_store.install_versions_load_failed')}: ${releaseError}`
-      : '';
+  const releaseStatusMessage =
+    supportsVersionSelection && !releasePageURL
+      ? t('plugin_store.install_version_non_github')
+      : releaseError
+        ? `${t('plugin_store.install_versions_load_failed')}: ${releaseError}`
+        : '';
   const manualVersionInvalid =
     supportsVersionSelection &&
     versionMode === 'manual' &&
@@ -302,13 +301,15 @@ function PluginInstallOptionsModal({
       onClose={handleClose}
       closeDisabled={installing}
       width={640}
-      title={isUpdate ? t('plugin_store.update_confirm_title') : t('plugin_store.install_confirm_title')}
+      title={
+        isUpdate ? t('plugin_store.update_confirm_title') : t('plugin_store.install_confirm_title')
+      }
       footer={
         <>
           <Button variant="secondary" onClick={handleClose} disabled={installing}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={onConfirm} loading={installing} disabled={confirmDisabled}>
+          <Button writeAction onClick={onConfirm} loading={installing} disabled={confirmDisabled}>
             {isUpdate ? t('plugin_store.update') : t('plugin_store.install')}
           </Button>
         </>
@@ -687,10 +688,8 @@ export function PluginStorePage({
         if (result.restartRequired) {
           await loadStore();
         } else {
-          const waitResult = await waitForPluginStoreState(
-            entry.id,
-            entry.sourceId,
-            (plugin) => isPluginStoreInstallSettled(plugin, version)
+          const waitResult = await waitForPluginStoreState(entry.id, entry.sourceId, (plugin) =>
+            isPluginStoreInstallSettled(plugin, version)
           );
           setData(waitResult.response);
         }
@@ -1061,6 +1060,7 @@ export function PluginStorePage({
           <div className={styles.cardActions}>
             {!entry.installed ? (
               <Button
+                writeAction
                 size="sm"
                 onClick={() => handleInstall(entry)}
                 disabled={actionDisabled}
@@ -1073,6 +1073,7 @@ export function PluginStorePage({
             ) : (
               <>
                 <Button
+                  writeAction
                   variant="secondary"
                   size="sm"
                   onClick={() => handleReinstall(entry)}
@@ -1084,6 +1085,7 @@ export function PluginStorePage({
                 </Button>
                 {entry.updateAvailable ? (
                   <Button
+                    writeAction
                     size="sm"
                     onClick={() => handleInstall(entry)}
                     disabled={actionDisabled}
@@ -1104,6 +1106,7 @@ export function PluginStorePage({
           {entry.installed ? (
             <div className={styles.deleteActions}>
               <Button
+                writeAction
                 variant="secondary"
                 size="sm"
                 iconOnly
@@ -1319,7 +1322,9 @@ export function PluginStorePage({
         entry={installOptionsEntry}
         isUpdate={installOptionsIsUpdate}
         version={installVersion}
-        installing={installOptionsEntry ? installingID === getStoreEntryKey(installOptionsEntry) : false}
+        installing={
+          installOptionsEntry ? installingID === getStoreEntryKey(installOptionsEntry) : false
+        }
         onVersionChange={setInstallVersion}
         onClose={handleInstallOptionsClose}
         onConfirm={handleInstallOptionsConfirm}

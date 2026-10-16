@@ -1,3 +1,4 @@
+import { ReadOnlyButton } from '@/features/readonly/ReadOnlyContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -348,6 +349,7 @@ export function ModelPricesPage() {
             {t('model_prices.sync_model_count', { count: syncModels.length })}
           </span>
           <Button
+            writeAction
             size="xs"
             variant="secondary"
             onClick={() => openManualEditor()}
@@ -357,6 +359,7 @@ export function ModelPricesPage() {
             {t('model_prices.add_manual')}
           </Button>
           <Button
+            writeAction
             size="xs"
             onClick={() => void handleSync()}
             loading={syncing}
@@ -492,6 +495,7 @@ export function ModelPricesPage() {
                 <IconX size={14} />
               </Button>
               <Button
+                writeAction
                 size="xs"
                 onClick={() => void handleSaveDraft()}
                 data-testid="save-draft-button"
@@ -506,7 +510,7 @@ export function ModelPricesPage() {
                     <strong>{t('model_prices.context_rules')}</strong>
                     <span>{t('model_prices.context_rules_hint')}</span>
                   </div>
-                  <Button size="xs" variant="secondary" onClick={addContextTier}>
+                  <Button writeAction size="xs" variant="secondary" onClick={addContextTier}>
                     <IconPlus size={13} />
                     <span>{t('model_prices.add_context_rule')}</span>
                   </Button>
@@ -565,7 +569,7 @@ export function ModelPricesPage() {
                     <strong>{t('model_prices.service_tier_rules')}</strong>
                     <span>{t('model_prices.service_tier_rules_hint')}</span>
                   </div>
-                  <Button size="xs" variant="secondary" onClick={addServiceTier}>
+                  <Button writeAction size="xs" variant="secondary" onClick={addServiceTier}>
                     <IconPlus size={13} />
                     <span>{t('model_prices.add_service_rule')}</span>
                   </Button>
@@ -776,7 +780,7 @@ export function ModelPricesPage() {
                               >
                                 <IconPencil size={14} />
                               </button>
-                              <button
+                              <ReadOnlyButton
                                 type="button"
                                 className={styles.iconAction}
                                 title={t('common.delete')}
@@ -784,7 +788,7 @@ export function ModelPricesPage() {
                                 onClick={() => void handleDelete(row.model)}
                               >
                                 <IconTrash2 size={14} />
-                              </button>
+                              </ReadOnlyButton>
                             </>
                           ) : candidates.length > 0 && selectedCandidate ? (
                             <div className={styles.candidateControl}>
@@ -822,13 +826,13 @@ export function ModelPricesPage() {
                               </button>
                             </div>
                           ) : (
-                            <button
+                            <ReadOnlyButton
                               type="button"
                               className={styles.confirmButton}
                               onClick={() => openManualEditor(row.model)}
                             >
                               <span>{t('model_prices.add_manual')}</span>
-                            </button>
+                            </ReadOnlyButton>
                           )}
                         </div>
                       </td>

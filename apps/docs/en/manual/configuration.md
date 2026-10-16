@@ -38,6 +38,18 @@ Keep automatic mode and default values unless your network has a known restricti
 
 :::
 
+## Read-only Management Access
+
+In Manager Server mode, sign in with the CPAMP administrator key, open **Configuration → CPA Manager Plus Configuration**, and use the **Read-only access** card to generate a shared read-only key. Copy it immediately: its plaintext is shown only once. Generation, rotation, and disabling take effect immediately and do not require the configuration Save action.
+
+A read-only key uses the same login page, navigation, and built-in management pages. Charts, filtering, pagination, and other read interactions remain available. Save, delete, import, OAuth initiation, and other modifying operations are disabled in the UI and rejected by Manager Server. API keys, OAuth tokens, configuration credentials, raw payloads, and potentially credential-bearing log bodies are redacted. Credential downloads, raw exports, arbitrary API calls, unknown interfaces, and third-party plugin resources remain restricted.
+
+There is one shared read-only key per instance. Rotating invalidates the previous key; disabling revokes read-only access on subsequent requests. Access covers the whole instance, with no per-client isolation or individual user accounts. This feature is unavailable in standalone CPA-hosted Lightweight Panel mode.
+
+The screenshot below uses fictional local data.
+
+![Existing management UI with read-only access](../../assets/read-only-management.png)
+
 ## Visual And Source Configuration
 
 Use the visual editor for normal operations. Use source mode when you need to:

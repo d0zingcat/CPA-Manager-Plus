@@ -113,6 +113,7 @@ export function CodexInspectionResultsPanel({
       renderOperation(item)
     ) : isExecutableAction(item) ? (
       <Button
+        writeAction
         size="sm"
         variant={item.action === 'delete' ? 'danger' : 'secondary'}
         onClick={() => onExecuteSingle(item)}
@@ -124,6 +125,7 @@ export function CodexInspectionResultsPanel({
       <div className={styles.resultsHeaderActions}>
         {onReauthAccount ? (
           <Button
+            writeAction
             size="sm"
             variant="secondary"
             onClick={() => onReauthAccount(item)}
@@ -139,6 +141,7 @@ export function CodexInspectionResultsPanel({
         )}
         {onDeleteReauthSingle ? (
           <Button
+            writeAction
             size="sm"
             variant="danger"
             onClick={() => onDeleteReauthSingle(item)}
@@ -203,6 +206,7 @@ export function CodexInspectionResultsPanel({
             <div className={styles.resultsToolbarActions}>
               {onDeleteReauthPlanned ? (
                 <Button
+                  writeAction
                   variant="danger"
                   size="sm"
                   onClick={onDeleteReauthPlanned}
@@ -215,6 +219,7 @@ export function CodexInspectionResultsPanel({
                 </Button>
               ) : null}
               <Button
+                writeAction
                 variant={pendingActionCount > 0 ? 'danger' : 'secondary'}
                 size="sm"
                 onClick={onExecutePlanned}

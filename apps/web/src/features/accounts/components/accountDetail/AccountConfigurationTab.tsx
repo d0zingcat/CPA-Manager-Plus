@@ -145,6 +145,7 @@ export function AccountConfigurationTab({
             {t('common.reset')}
           </Button>
           <Button
+            writeAction
             size="sm"
             className={styles.configurationToolbarButton}
             onClick={() => void editor.save()}

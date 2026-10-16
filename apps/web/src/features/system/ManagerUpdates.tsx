@@ -50,6 +50,7 @@ export function ManagerUpdates({ children }: { children: ReactNode }) {
   const viewingUpdates = useRef(onUpdatesPage);
   const updatePageVisits = useRef(0);
   const auth = useAuthStore((s) => s.isAuthenticated);
+  const readOnly = useAuthStore((s) => s.role === 'usage_viewer');
   const key = useAuthStore((s) => s.managementKey);
   const availability = usePanelFeatureAvailability();
   const base = availability.managerServiceBase;
@@ -76,7 +77,8 @@ export function ManagerUpdates({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(
     async (suffix = '', method = 'GET', body?: unknown) => {
-      if (!available || (method === 'GET' && mutation.current)) return;
+      if (!available || (readOnly && method !== 'GET') || (method === 'GET' && mutation.current))
+        return;
       const current = generation.current;
       const request = ++requestSequence.current;
       const channel = channelGeneration.current;
@@ -94,7 +96,7 @@ export function ManagerUpdates({ children }: { children: ReactNode }) {
             ? old
             : null
         );
-        if (eligible && document.visibilityState === 'visible' && !claiming.current) {
+        if (!readOnly && eligible && document.visibilityState === 'visible' && !claiming.current) {
           const claim = {};
           const visit = updatePageVisits.current;
           const claimedOnUpdatesPage = viewingUpdates.current;
@@ -133,7 +135,7 @@ export function ManagerUpdates({ children }: { children: ReactNode }) {
         }
       }
     },
-    [available, base, key]
+    [readOnly, available, base, key]
   );
 
   useEffect(() => {
@@ -161,7 +163,7 @@ export function ManagerUpdates({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   const mutate = async (suffix: string, method: string, data?: unknown) => {
-    if (!available || mutation.current) return;
+    if (!available || readOnly || mutation.current) return;
     const pending = {};
     mutation.current = pending;
     if (suffix === '/channel') {
@@ -182,7 +184,7 @@ export function ManagerUpdates({ children }: { children: ReactNode }) {
   const dismiss = () => {
     const tag = notification?.release.version;
     setNotification(null);
-    if (tag)
+    if (tag && !readOnly)
       void managerUpdateRequest(base, key, '/dismiss', 'POST', { version: tag }).catch(() => {});
   };
   const language = i18n.language.startsWith('zh') ? 'zh' : 'en';

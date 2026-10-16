@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"errors"
+	"github.com/seakee/cpa-manager-plus/apps/manager-server/internal/http/middleware"
 	"net/http"
 
 	"github.com/seakee/cpa-manager-plus/apps/manager-server/internal/app"
@@ -19,10 +20,17 @@ func (h *Handler) Management(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
 	}
-	if ok {
+	if ok || middleware.ViewerRead(r) {
 		if proxysvc.IsCPAPluginManagementPath(r.URL.Path) {
 			h.App.ProxyService.ProxyPluginManagement(w, r, response.Error)
 			return
+		}
+		if middleware.ViewerRead(r) && r.URL.Path == "/v0/management/config.yaml" {
+			clone := r.Clone(r.Context())
+			u := *r.URL
+			u.Path = "/v0/management/config"
+			clone.URL = &u
+			r = clone
 		}
 		h.App.ProxyService.ProxyManagement(w, r, response.Error)
 		return

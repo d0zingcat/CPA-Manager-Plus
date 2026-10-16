@@ -85,6 +85,7 @@ export function CodexInspectionStatusPanel({
               {configOverviewEditLabel}
             </Button>
             <Button
+              writeAction
               variant="primary"
               size="sm"
               onClick={onRunInspection}

@@ -1,3 +1,4 @@
+import { useReadOnly } from '@/features/readonly/readOnlyState';
 import type { ChangeEvent, ReactNode } from 'react';
 import styles from './ToggleSwitch.module.scss';
 
@@ -8,6 +9,7 @@ interface ToggleSwitchProps {
   ariaLabel?: string;
   disabled?: boolean;
   labelPosition?: 'left' | 'right';
+  writeAction?: boolean;
 }
 
 export function ToggleSwitch({
@@ -16,8 +18,11 @@ export function ToggleSwitch({
   label,
   ariaLabel,
   disabled = false,
-  labelPosition = 'right'
+  writeAction = true,
+  labelPosition = 'right',
 }: ToggleSwitchProps) {
+  const readOnly = useReadOnly();
+  disabled = disabled || (readOnly && writeAction);
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.checked);
   };

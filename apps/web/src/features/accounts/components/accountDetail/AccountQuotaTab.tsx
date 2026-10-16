@@ -15,9 +15,7 @@ import {
   formatQuotaResetTimestamp,
   getQuotaResetRemainingDuration,
 } from '@/features/accounts/model/accountsPagePresentation';
-import {
-  getAccountQuotaSemanticGroup,
-} from '@/features/accounts/model/accountQuotaDisplayWindows';
+import { getAccountQuotaSemanticGroup } from '@/features/accounts/model/accountQuotaDisplayWindows';
 import { useInterval } from '@/hooks/useInterval';
 import { formatCompactNumber, formatUsd } from '@/utils/usage';
 import { QuotaWindowCard } from '../QuotaWindowCard';
@@ -242,8 +240,6 @@ export function AccountQuotaTab({
 
       {windowUsageError ? <div className={styles.errorBox}>{windowUsageError}</div> : null}
 
-
-
       {standardWindows.length > 0 || allWindows.length === 0 ? (
         <section className={styles.quotaSection} data-quota-window-group="standard">
           <div className={styles.quotaSectionHeading}>
@@ -350,6 +346,7 @@ export function AccountQuotaTab({
                   </div>
                 ) : null}
                 <Button
+                  writeAction
                   variant="secondary"
                   size="sm"
                   className={styles.quotaResetAction}
@@ -380,8 +377,8 @@ export function AccountQuotaTab({
                     >
                       <span>{t('codex_quota.reset_credit_expiry_item', { index: index + 1 })}</span>
                       <strong data-quota-reset-credit-expiry={item.id}>
-                        {renderResetCreditRemainingText(item.expiresAtMs, nowMs, t)}{' '}
-                        · {formatQuotaResetTimestamp(item.expiresAtMs, i18n.language)}
+                        {renderResetCreditRemainingText(item.expiresAtMs, nowMs, t)} ·{' '}
+                        {formatQuotaResetTimestamp(item.expiresAtMs, i18n.language)}
                       </strong>
                     </div>
                   ))}

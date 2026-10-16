@@ -1570,7 +1570,12 @@ export function AiProvidersPage() {
       <EmptyState
         title={t('ai_providers.kind_empty_title', { name: PROVIDER_KIND_LABELS[kindFilter] })}
         action={
-          <Button size="sm" onClick={() => handleAdd(kindFilter)} disabled={actionsDisabled}>
+          <Button
+            writeAction
+            size="sm"
+            onClick={() => handleAdd(kindFilter)}
+            disabled={actionsDisabled}
+          >
             {t('ai_providers.add_kind_button', { name: PROVIDER_KIND_LABELS[kindFilter] })}
           </Button>
         }
