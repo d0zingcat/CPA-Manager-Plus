@@ -6,6 +6,8 @@ import type { ManagerConfigResponse } from '@/services/api/usageService';
 import type { VisualConfigValues } from '@/types/visualConfig';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 
+vi.mock('@/features/readonly/ReadonlyKeyCard', () => ({ ReadonlyKeyCard: () => null }));
+
 vi.mock('react-dom', () => ({
   createPortal: (children: ReactNode) => children,
 }));

@@ -23,6 +23,9 @@ const createMemoryStorage = (): StorageLike => {
   };
 };
 
+const accessSessionMock = vi.fn();
+vi.mock('@/services/api/access', () => ({ accessApi: { session: accessSessionMock } }));
+
 const apiClientSetConfig = vi.fn();
 const fetchConfigMock = vi.fn();
 const clearConfigCacheMock = vi.fn();
@@ -93,6 +96,7 @@ describe('useAuthStore logout', () => {
   let storage: StorageLike;
 
   beforeEach(() => {
+    accessSessionMock.mockReset().mockRejectedValue({ status: 404 });
     vi.resetModules();
     apiClientSetConfig.mockClear();
     fetchConfigMock.mockReset();
@@ -163,6 +167,7 @@ describe('useAuthStore manager embedded login recovery', () => {
   let storage: StorageLike;
 
   beforeEach(() => {
+    accessSessionMock.mockReset().mockRejectedValue({ status: 404 });
     vi.resetModules();
     apiClientSetConfig.mockClear();
     fetchConfigMock.mockReset();
@@ -180,6 +185,43 @@ describe('useAuthStore manager embedded login recovery', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.clearAllMocks();
+  });
+
+  it('authenticates a viewer without requesting any configuration', async () => {
+    accessSessionMock.mockResolvedValue({ role: 'usage_viewer', capabilities: ['usage:read'] });
+    const { useAuthStore } = await import('./useAuthStore');
+    await useAuthStore
+      .getState()
+      .login({
+        apiBase: 'http://manager.local',
+        managementKey: 'cpamp_view_test',
+        sessionMode: 'manager_embedded',
+        rememberPassword: true,
+      });
+    expect(useAuthStore.getState().role).toBe('usage_viewer');
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    expect(fetchConfigMock).not.toHaveBeenCalled();
+    expect(usageServiceGetManagerConfigMock).not.toHaveBeenCalled();
+    await useAuthStore.getState().checkAuth();
+    expect(fetchConfigMock).not.toHaveBeenCalled();
+    useAuthStore.getState().logout();
+    expect(useAuthStore.getState().role).toBe('admin');
+  });
+
+  it('does not fall back to configuration access after session rejection', async () => {
+    accessSessionMock.mockRejectedValue({ status: 403 });
+    const { useAuthStore } = await import('./useAuthStore');
+    await expect(
+      useAuthStore
+        .getState()
+        .login({
+          apiBase: 'http://manager.local',
+          managementKey: 'cpamp_view_bad',
+          sessionMode: 'manager_embedded',
+        })
+    ).rejects.toEqual({ status: 403 });
+    expect(fetchConfigMock).not.toHaveBeenCalled();
+    expect(usageServiceGetManagerConfigMock).not.toHaveBeenCalled();
   });
 
   it('allows Manager Server admin login to recover when the saved CPA key can no longer fetch CPA config', async () => {
@@ -305,6 +347,7 @@ describe('useAuthStore v1 obfuscation persistence gate and v2 migration', () => 
   });
 
   beforeEach(() => {
+    accessSessionMock.mockReset().mockRejectedValue({ status: 404 });
     vi.resetModules();
     apiClientSetConfig.mockClear();
     fetchConfigMock.mockReset();
@@ -971,4 +1014,3 @@ describe('useAuthStore v1 obfuscation persistence gate and v2 migration', () => 
     expect(parsed.state.managementKey).toBe('explicit-manual-key');
   });
 });
-

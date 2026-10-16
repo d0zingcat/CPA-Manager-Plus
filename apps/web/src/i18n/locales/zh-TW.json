@@ -5359,5 +5359,21 @@
       "ultra": "Ultra",
       "ultra_lite": "Ultra Lite"
     }
+  },
+  "readonly": {
+    "key_title": "唯讀存取",
+    "key_description": "共用一個唯讀金鑰，查看與管理員相同的管理介面。敏感憑證會遮蔽，修改操作停用。輪換或停用立即生效。",
+    "enabled": "已啟用",
+    "disabled": "已停用",
+    "generate": "產生金鑰",
+    "rotate": "輪替金鑰",
+    "disable": "停用金鑰",
+    "once": "請立即複製，此金鑰僅顯示一次。輪替會使舊金鑰失效。",
+    "copy": "複製",
+    "copy_error": "複製失敗，請選取金鑰手動複製。",
+    "badge": "唯讀",
+    "login_key_label": "存取金鑰",
+    "login_key_placeholder": "輸入管理員或唯讀金鑰",
+    "login_key_hint": "管理員金鑰可管理設定；唯讀金鑰查看相同介面，敏感憑證遮蔽且無法修改。"
   }
 }

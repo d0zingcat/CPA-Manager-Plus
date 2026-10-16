@@ -1,3 +1,4 @@
+import { useReadOnly } from '@/features/readonly/readOnlyState';
 import {
   ReactNode,
   SVGProps,
@@ -230,6 +231,7 @@ interface MainLayoutProps {
 }
 
 function MainLayoutContent({ routeBase = '', demoMode = false }: MainLayoutProps = {}) {
+  const readOnly = useReadOnly();
   const { t } = useTranslation();
   const { showNotification } = useNotificationStore();
   const location = useLocation();
@@ -726,6 +728,11 @@ function MainLayoutContent({ routeBase = '', demoMode = false }: MainLayoutProps
       <header className="main-header" ref={headerRef}>
         <div className="navbar">
           <div className="navbar-left">
+            {readOnly && (
+              <span className="status-badge" role="status">
+                {t('readonly.badge')}
+              </span>
+            )}
             <button
               type="button"
               className="hamburger-container"

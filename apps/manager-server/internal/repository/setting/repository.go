@@ -26,6 +26,8 @@ type Repository interface {
 	LoadAutomationSettings(ctx context.Context) (model.AutomationSettings, bool, error)
 	SaveSetup(ctx context.Context, setup model.Setup) error
 	LoadSetup(ctx context.Context) (model.Setup, bool, error)
+	SaveReadonlyCredential(ctx context.Context, credential model.AdminCredential) error
+	LoadReadonlyCredential(ctx context.Context) (model.AdminCredential, bool, error)
 	SaveAdminCredential(ctx context.Context, credential model.AdminCredential) error
 	LoadAdminCredential(ctx context.Context) (model.AdminCredential, bool, error)
 	SaveBootstrapState(ctx context.Context, state model.BootstrapState) error

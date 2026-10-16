@@ -1,3 +1,5 @@
+import { ReadOnlyButton } from '@/features/readonly/ReadOnlyContext';
+import { useReadOnly } from '@/features/readonly/readOnlyState';
 import {
   Suspense,
   lazy,
@@ -47,6 +49,7 @@ import {
   type ManagerConfigResponse,
 } from '@/services/api/usageService';
 import { detectApiBaseFromLocation } from '@/utils/connection';
+import { ReadonlyKeyCard } from '@/features/readonly/ReadonlyKeyCard';
 import { ManagerConfigPanel } from './components/ManagerConfigPanel';
 import styles from './ConfigPage.module.scss';
 
@@ -429,7 +432,8 @@ export function ConfigPage() {
     setSourceSnapshotStale(stale);
   }, []);
 
-  const disableControls = connectionStatus !== 'connected';
+  const readOnly = useReadOnly();
+  const disableControls = readOnly || connectionStatus !== 'connected';
   const showManagerTab = panelHostedByUsageService === true;
   const isManagerTab = activeTab === 'manager' && showManagerTab;
   const sourceDirty = dirty || visualDirty;
@@ -1449,6 +1453,7 @@ export function ConfigPage() {
 
   // Status text
   const getStatusText = () => {
+    if (readOnly) return t('readonly.badge');
     if (isManagerTab) {
       if (disableControls) return t('config_management.status_disconnected');
       if (managerLoading) return t('config_management.status_loading');
@@ -1482,6 +1487,7 @@ export function ConfigPage() {
   };
 
   const getFloatingStatusText = () => {
+    if (readOnly) return t('readonly.badge');
     if (isManagerTab) {
       if (!isMobile) return getStatusText();
       if (disableControls)
@@ -1568,7 +1574,7 @@ export function ConfigPage() {
         >
           <IconRefreshCw size={16} />
         </button>
-        <button
+        <ReadOnlyButton
           type="button"
           className={styles.floatingActionButton}
           onClick={handleSave}
@@ -1594,7 +1600,7 @@ export function ConfigPage() {
         >
           <IconCheck size={16} />
           {isDirty && <span className={styles.dirtyDot} aria-hidden="true" />}
-        </button>
+        </ReadOnlyButton>
       </div>
     </div>
   );
@@ -1649,6 +1655,9 @@ export function ConfigPage() {
         </div>
 
         <div className={styles.content}>
+          {isManagerTab && panelHostedByUsageService && (
+            <ReadonlyKeyCard base={detectedPanelBase} />
+          )}
           {!isManagerTab && error && <div className="error-box">{error}</div>}
           {isManagerTab && managerError && <div className="error-box">{managerError}</div>}
           {!isManagerTab && !error && visualParseError && (
@@ -1740,7 +1749,7 @@ export function ConfigPage() {
                     onChange={(e) => handleSearchChange(e.target.value)}
                     onKeyDown={handleSearchKeyDown}
                     placeholder={t('config_management.search_placeholder')}
-                    disabled={disableControls || loading}
+                    disabled={loading}
                     className={styles.searchInput}
                     rightElement={
                       <div className={styles.searchRight}>
@@ -1755,7 +1764,7 @@ export function ConfigPage() {
                           type="button"
                           className={styles.searchButton}
                           onClick={() => executeSearch('next')}
-                          disabled={!searchQuery || disableControls || loading}
+                          disabled={!searchQuery || loading}
                           title={t('config_management.search_button')}
                         >
                           <IconSearch size={16} />

@@ -5359,5 +5359,21 @@
       "ultra": "Ultra",
       "ultra_lite": "Ultra Lite"
     }
+  },
+  "readonly": {
+    "key_title": "只读访问",
+    "key_description": "共享一个只读密钥，查看与管理员相同的管理界面。敏感凭据脱敏，修改操作禁用。轮换或禁用立即生效。",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "generate": "生成密钥",
+    "rotate": "轮换密钥",
+    "disable": "禁用密钥",
+    "once": "请立即复制，此密钥仅显示一次。轮换会使旧密钥失效。",
+    "copy": "复制",
+    "copy_error": "复制失败，请选中密钥手动复制。",
+    "badge": "只读",
+    "login_key_label": "访问密钥",
+    "login_key_placeholder": "输入管理员或只读密钥",
+    "login_key_hint": "管理员密钥可管理设置；只读密钥查看相同界面，敏感凭据脱敏且无法修改。"
   }
 }

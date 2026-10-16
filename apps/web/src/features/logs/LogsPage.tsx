@@ -30,12 +30,7 @@ import { copyToClipboard } from '@/utils/clipboard';
 import { downloadBlob } from '@/utils/download';
 import { MANAGEMENT_API_PREFIX } from '@/utils/constants';
 import { formatUnixTimestamp } from '@/utils/format';
-import {
-  HTTP_METHODS,
-  STATUS_GROUPS,
-  resolveStatusGroup,
-  type LogState,
-} from './hooks/logTypes';
+import { HTTP_METHODS, STATUS_GROUPS, resolveStatusGroup, type LogState } from './hooks/logTypes';
 import { parseLogLine } from './hooks/logParsing';
 import { useLogFilters } from './hooks/useLogFilters';
 import { isNearBottom, useLogScroller } from './hooks/useLogScroller';
@@ -409,14 +404,14 @@ export function LogsPage() {
     return {
       filteredParsedLines: filteredParsed,
       filteredLines: filteredParsed.map((line) => line.raw),
-      removedCount: Math.max(baseLines.length - filteredParsed.length, 0)
+      removedCount: Math.max(baseLines.length - filteredParsed.length, 0),
     };
   }, [
     baseLines,
     filters.methodFilterSet,
     filters.pathFilterSet,
     filters.statusFilterSet,
-    parsedSearchLines
+    parsedSearchLines,
   ]);
 
   const parsedVisibleLines = useMemo(
@@ -433,7 +428,7 @@ export function LogsPage() {
     isSearching,
     filteredLineCount: filteredLines.length,
     hasStructuredFilters: filters.hasStructuredFilters,
-    showRawLogs
+    showRawLogs,
   });
 
   logScrollerRef.current = scroller;
@@ -499,7 +494,7 @@ export function LogsPage() {
       const response = await logsApi.downloadRequestLogById(id);
       downloadBlob({
         filename: `request-${id}.log`,
-        blob: new Blob([response.data], { type: 'text/plain' })
+        blob: new Blob([response.data], { type: 'text/plain' }),
       });
       showNotification(t('logs.request_log_download_success'), 'success');
       setRequestLogId(null);
@@ -687,6 +682,7 @@ export function LogsPage() {
               )}
 
               <ToggleSwitch
+                writeAction={false}
                 checked={hideManagementLogs}
                 onChange={setHideManagementLogs}
                 label={
@@ -698,6 +694,7 @@ export function LogsPage() {
               />
 
               <ToggleSwitch
+                writeAction={false}
                 checked={showRawLogs}
                 onChange={setShowRawLogs}
                 label={
@@ -727,6 +724,7 @@ export function LogsPage() {
                   </span>
                 </Button>
                 <ToggleSwitch
+                  writeAction={false}
                   checked={autoRefresh}
                   onChange={(value) => setAutoRefresh(value)}
                   disabled={disableControls}
@@ -738,6 +736,7 @@ export function LogsPage() {
                   }
                 />
                 <Button
+                  writeAction
                   variant="secondary"
                   size="sm"
                   onClick={downloadLogs}
@@ -750,6 +749,7 @@ export function LogsPage() {
                   </span>
                 </Button>
                 <Button
+                  writeAction
                   variant="danger"
                   size="sm"
                   onClick={clearLogs}
@@ -776,9 +776,7 @@ export function LogsPage() {
                   <div className={styles.loadMoreBanner}>
                     <span>{t('logs.load_more_hint')}</span>
                     <div className={styles.loadMoreStats}>
-                      <span>
-                        {t('logs.loaded_lines', { count: filteredLines.length })}
-                      </span>
+                      <span>{t('logs.loaded_lines', { count: filteredLines.length })}</span>
                       {removedCount > 0 && (
                         <span className={styles.loadMoreCount}>
                           {t('logs.filtered_lines', { count: removedCount })}
@@ -924,7 +922,9 @@ export function LogsPage() {
 
               {requestLogEnabled && (
                 <div>
-                  <div className="status-badge warning">{t('logs.error_logs_request_log_enabled')}</div>
+                  <div className="status-badge warning">
+                    {t('logs.error_logs_request_log_enabled')}
+                  </div>
                 </div>
               )}
 
@@ -950,6 +950,7 @@ export function LogsPage() {
                           <Button
                             variant="secondary"
                             size="sm"
+                            writeAction
                             onClick={() => downloadErrorLog(item.name)}
                             disabled={disableControls}
                           >
@@ -972,7 +973,11 @@ export function LogsPage() {
         title={t('logs.request_log_download_title')}
         footer={
           <>
-            <Button variant="secondary" onClick={closeRequestLogModal} disabled={requestLogDownloading}>
+            <Button
+              variant="secondary"
+              onClick={closeRequestLogModal}
+              disabled={requestLogDownloading}
+            >
               {t('common.cancel')}
             </Button>
             <Button

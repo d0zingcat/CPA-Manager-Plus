@@ -1,3 +1,4 @@
+import { ReadOnlyButton } from '@/features/readonly/ReadOnlyContext';
 import type { RefObject } from 'react';
 import type { TFunction } from 'i18next';
 import {
@@ -128,7 +129,7 @@ export function CodexInspectionLogsPanel({
               </button>
             ) : null}
             {onClearLogs ? (
-              <button
+              <ReadOnlyButton
                 type="button"
                 className={styles.iconButton}
                 onClick={onClearLogs}
@@ -137,7 +138,7 @@ export function CodexInspectionLogsPanel({
                 title={t('monitoring.codex_inspection_logs_clear')}
               >
                 <IconTrash2 size={14} />
-              </button>
+              </ReadOnlyButton>
             ) : null}
             <button
               type="button"

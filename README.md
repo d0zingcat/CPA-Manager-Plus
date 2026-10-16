@@ -264,3 +264,11 @@ docker compose -f docker-compose.manager.yml up --build
 ## License
 
 [MIT](https://github.com/seakee/CPA-Manager-Plus/blob/main/LICENSE) — Copyright 2026 Seakee.
+
+### Read-only management access
+
+In Manager Server mode, administrators can open **Configuration → Manager → Read-only access** to generate, rotate, or disable one shared usage-viewer key. The plaintext is displayed only once; the server stores a salted hash. Rotation and disabling revoke the previous key on its next request.
+
+Use the same Manager login page with the read-only key to open the existing management layout, navigation and built-in pages. Dashboards, analytics, monitoring, accounts, configuration, prices and operational status retain their normal read views, filters, charts and pagination. Save, delete, import, authorization and key-management actions are disabled and rejected server-side. API keys, OAuth tokens, configuration secrets, raw payloads and potentially credential-bearing log bodies are redacted. Credential downloads, raw exports, arbitrary API calls, unknown endpoints and third-party plugin resources remain restricted. Access is site-wide, not per-client, and requires Manager Server mode.
+
+The session endpoint identifies `admin` or `usage_viewer`. Administrators manage the key at `/usage-service/readonly-key`; viewers can read its enabled status. The server maintains an explicit read-route catalog, including POST statistics queries, and redacts responses before sending them. Unlisted interfaces and all modifying operations return `403`.

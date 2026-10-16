@@ -1390,7 +1390,7 @@ export function CodexInspectionPage({
               >
                 {t('monitoring.codex_inspection_settings_reset_button')}
               </Button>
-              <Button size="sm" onClick={handleSaveSettings}>
+              <Button writeAction size="sm" onClick={handleSaveSettings}>
                 {t('common.save')}
               </Button>
             </div>

@@ -3,6 +3,7 @@ package managerconfig
 import (
 	"encoding/json"
 	"errors"
+	"github.com/seakee/cpa-manager-plus/apps/manager-server/internal/http/middleware"
 	"net/http"
 
 	"github.com/seakee/cpa-manager-plus/apps/manager-server/internal/app"
@@ -59,6 +60,9 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) authorizeRead(w http.ResponseWriter, r *http.Request) bool {
+	if middleware.ViewerRead(r) {
+		return true
+	}
 	ok, err := h.App.AdminAuthService.VerifyPanelHeader(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)

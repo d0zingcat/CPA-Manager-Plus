@@ -778,14 +778,17 @@ export function UsageMaintenanceTransferView({
                       <i style={{ width: `${progressPercent(session)}%` }} />
                     </div>
                     <small>
-                      {formatFileSize(session.received_bytes)} / {formatFileSize(session.size_bytes)}
+                      {formatFileSize(session.received_bytes)} /{' '}
+                      {formatFileSize(session.size_bytes)}
                     </small>
                   </td>
                   <td data-label={t('usage_maintenance.transfer_last_result')}>
                     <span>{resultSummary(session.result, t)}</span>
                   </td>
                   <td data-label={t('usage_maintenance.technical_status')}>
-                    <span className={`${styles.pill} ${statusTone(session.status, session.result)}`}>
+                    <span
+                      className={`${styles.pill} ${statusTone(session.status, session.result)}`}
+                    >
                       {displayStatus(session)}
                     </span>
                   </td>
@@ -824,7 +827,7 @@ export function UsageMaintenanceTransferView({
         {sessions.length === 0 && !loading && !error && sessionList ? (
           <div className={styles.empty}>
             {t('usage_maintenance.transfer_no_sessions')}
-            <Button size="sm" onClick={() => onOpenPanel('import')}>
+            <Button writeAction size="sm" onClick={() => onOpenPanel('import')}>
               {t('usage_maintenance.import_file')}
             </Button>
           </div>
@@ -873,7 +876,7 @@ export function UsageMaintenanceTransferView({
                 >
                   {t('common.back')}
                 </Button>
-                <Button onClick={confirmImport}>
+                <Button writeAction onClick={confirmImport}>
                   {t('usage_maintenance.transfer_import_confirm_button')}
                 </Button>
               </>
@@ -970,6 +973,7 @@ export function UsageMaintenanceTransferView({
             <p className={styles.muted}>{t('usage_maintenance.import_cancel_note')}</p>
             {!operationBusy && !cancelPending ? (
               <Button
+                writeAction
                 variant="ghost"
                 size="sm"
                 onClick={() => {

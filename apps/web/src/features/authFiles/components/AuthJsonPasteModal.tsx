@@ -154,7 +154,7 @@ export function AuthJsonPasteModal({
           <Button variant="secondary" onClick={handleClose} disabled={saving}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={handleSave} loading={saving} disabled={!canSave}>
+          <Button writeAction onClick={handleSave} loading={saving} disabled={!canSave}>
             {t('auth_files.paste_save_button')}
           </Button>
         </>

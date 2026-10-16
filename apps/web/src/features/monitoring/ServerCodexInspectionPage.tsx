@@ -1,3 +1,4 @@
+import { ReadOnlyButton } from '@/features/readonly/ReadOnlyContext';
 import {
   useCallback,
   useEffect,
@@ -1925,6 +1926,7 @@ export function ServerCodexInspectionPage({
                 {t('monitoring.server_codex_inspection_discard')}
               </Button>
               <Button
+                writeAction
                 size="sm"
                 onClick={handleSave}
                 loading={saving}
@@ -2053,7 +2055,7 @@ export function ServerCodexInspectionPage({
             const selected = run.id === selectedRunId;
             const ariaLabel = `${getRunStatusLabel(run, t)} · #${run.id} · ${formatTimestamp(run.startedAtMs, i18n.language)}`;
             return (
-              <button
+              <ReadOnlyButton
                 type="button"
                 key={run.id}
                 role="tab"
@@ -2113,7 +2115,7 @@ export function ServerCodexInspectionPage({
                     </span>
                   ) : null}
                 </div>
-              </button>
+              </ReadOnlyButton>
             );
           })}
         </div>
@@ -2241,6 +2243,7 @@ export function ServerCodexInspectionPage({
           ) : null}
           {canonicalExecutableIds.has(source.id) ? (
             <Button
+              writeAction
               size="xs"
               variant={source.action === 'delete' ? 'danger' : 'secondary'}
               loading={executingResultIds.has(source.id)}
@@ -2276,6 +2279,7 @@ export function ServerCodexInspectionPage({
                 )}
               </Button>
               <Button
+                writeAction
                 size="xs"
                 variant="danger"
                 className={styles.serverResultActionButton}

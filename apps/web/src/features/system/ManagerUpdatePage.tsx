@@ -1,3 +1,4 @@
+import { useReadOnly } from '@/features/readonly/readOnlyState';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -171,6 +172,7 @@ function ReleaseDetails({
 }
 
 export function ManagerUpdatePage() {
+  const readOnly = useReadOnly();
   const { t, i18n } = useTranslation();
   const { status, available, busy, error, check, setChannel } = useManagerUpdates();
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -233,6 +235,7 @@ export function ManagerUpdatePage() {
           </p>
         </div>
         <Button
+          writeAction
           type="button"
           variant="secondary"
           onClick={() => void check()}
@@ -347,7 +350,7 @@ export function ManagerUpdatePage() {
               value={status.channel_preference}
               options={channelOptions}
               onChange={(value) => void setChannel(value as UpdateChannel)}
-              disabled={busy}
+              disabled={readOnly || busy}
               ariaLabelledBy="manager-update-channel-label"
               ariaDescribedBy="manager-update-channel-hint"
               className={styles.channelSelect}
