@@ -171,7 +171,25 @@ func message(o model.HealthObservation) string {
 			event = "额度已恢复"
 		}
 	}
-	text := fmt.Sprintf("CPA Manager Plus｜%s\nProvider：%s\n账号索引：%s", event, o.Provider, o.AuthIndex)
+	email := model.HealthAccountEmail(o.Email)
+	if email == "" {
+		email = "未知（未提供邮箱）"
+	}
+	text := fmt.Sprintf("CPA Manager Plus｜%s\nProvider：%s\n账号邮箱：%s\n账号索引：%s", event, o.Provider, email, o.AuthIndex)
+	sources := map[string]string{"usage": "请求采集", "inspection": "账号巡检", "quota_snapshot": "额度快照"}
+	if source := sources[o.Source]; source != "" {
+		text += "\n触发来源：" + source
+	}
+	if o.StatusCode >= 100 && o.StatusCode <= 599 {
+		text += fmt.Sprintf("\nHTTP 状态码：%d", o.StatusCode)
+	}
+	if o.Unhealthy && o.Dimension == "auth" {
+		reasons := map[string]string{"token_revoked": "登录令牌已被撤销或作废", "invalid_credentials": "认证凭证无效或已过期"}
+		if reason := reasons[o.ReasonCode]; reason != "" {
+			text += "\n失败原因：" + reason
+		}
+		text += "\n处理建议：在凭证管理中找到该账号并重新登录"
+	}
 	if o.Window != "" {
 		text += "\n额度窗口：" + o.Window
 	}

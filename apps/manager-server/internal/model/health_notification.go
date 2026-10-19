@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"net/mail"
+	"strings"
+	"time"
+)
 
 // HealthObservationFresh bounds replay while allowing long-running inspections.
 func HealthObservationFresh(observedAtMS int64, now time.Time) bool {
@@ -12,6 +16,10 @@ func HealthObservationFresh(observedAtMS int64, now time.Time) bool {
 type HealthObservation struct {
 	Provider     string `json:"provider"`
 	AuthIndex    string `json:"authIndex"`
+	Email        string `json:"email,omitempty"`
+	Source       string `json:"source,omitempty"`
+	StatusCode   int    `json:"statusCode,omitempty"`
+	ReasonCode   string `json:"reasonCode,omitempty"`
 	Dimension    string `json:"dimension"`
 	Unhealthy    bool   `json:"unhealthy"`
 	ObservedAtMS int64  `json:"observedAtMs"`
@@ -53,4 +61,15 @@ func HealthEvent(o HealthObservation) string {
 		return "quota_exhausted"
 	}
 	return "quota_recovered"
+}
+
+// HealthAccountEmail accepts only a plain email from the existing account snapshot.
+// Labels, file names and other identity fallbacks are not email evidence.
+func HealthAccountEmail(snapshot string) string {
+	value := strings.TrimSpace(snapshot)
+	address, err := mail.ParseAddress(value)
+	if err != nil || address.Address != value || !strings.Contains(value, "@") {
+		return ""
+	}
+	return value
 }

@@ -19,3 +19,15 @@ func TestHealthObservationFreshBoundaries(t *testing.T) {
 		t.Fatal("zero timestamp accepted")
 	}
 }
+
+func TestHealthAccountEmail(t *testing.T) {
+	for _, tc := range []struct{ input, want string }{
+		{" User@example.com ", "User@example.com"},
+		{"", ""}, {"codex-account.json", ""}, {"label", ""},
+		{"User <user@example.com>", ""}, {"user@example.com\nspoof", ""},
+	} {
+		if got := HealthAccountEmail(tc.input); got != tc.want {
+			t.Errorf("email(%q) = %q, want %q", tc.input, got, tc.want)
+		}
+	}
+}

@@ -44,11 +44,14 @@ func TestHealthWorkerEvidenceAndRecovery(t *testing.T) {
 	worker := NewHealthNotificationWorker(st)
 	ctx := context.Background()
 	now := time.Now().UnixMilli()
-	base := usage.Event{Provider: "codex", AuthIndex: "account-a", AuthFileSnapshot: "a.json", TimestampMS: now, Failed: true, FailStatusCode: 401, FailSummary: "invalid_token"}
+	base := usage.Event{Provider: "codex", AuthIndex: "account-a", AccountSnapshot: "user@example.com", AuthFileSnapshot: "a.json", TimestampMS: now, Failed: true, FailStatusCode: 401, FailSummary: "invalid_token"}
 	worker.HandleUsageEvents(ctx, collectorpkg.RuntimeConfig{}, []usage.Event{base, base})
 	messages := drainHealth(t, st)
 	if len(messages) != 1 || messages[0].Dimension != "auth" || !messages[0].Unhealthy {
 		t.Fatalf("invalid auth notification: %+v", messages)
+	}
+	if messages[0].Email != "user@example.com" || messages[0].Source != "usage" || messages[0].StatusCode != 401 || messages[0].ReasonCode != "invalid_credentials" {
+		t.Fatalf("missing account context: %+v", messages[0])
 	}
 	// A network error, ambiguous 401/403, or ordinary rate limit is not recovery
 	// and not a new re-login or quota-exhaustion alert.
@@ -83,6 +86,9 @@ func TestHealthWorkerEvidenceAndRecovery(t *testing.T) {
 	if len(messages) != 1 || messages[0].Window != "unknown" || !messages[0].Unhealthy || messages[0].ResetAtMS != 0 {
 		t.Fatalf("structured exhaustion: %+v", messages)
 	}
+	if messages[0].Email != "user@example.com" || messages[0].Source != "usage" || messages[0].StatusCode != 429 {
+		t.Fatalf("missing quota context: %+v", messages[0])
+	}
 	success.TimestampMS = now + 30
 	worker.HandleUsageEvents(ctx, collectorpkg.RuntimeConfig{}, []usage.Event{success})
 	if got := drainHealth(t, st); len(got) != 0 {
@@ -96,13 +102,13 @@ func TestHeaderQuotaDoesNotDuplicateScopedSnapshotNotification(t *testing.T) {
 	ctx := context.Background()
 	used := 100.0
 	minutes := 10080.0
-	event := usage.Event{Provider: "codex", AuthIndex: "spark-one", AuthFileSnapshot: "spark.json", TimestampMS: time.Now().UnixMilli(), Failed: true, FailStatusCode: 429, Model: "gpt-5.3-codex-spark", FailBody: `{"error":{"type":"usage_limit_reached"}}`, ResponseMetadata: &usage.ResponseHeaderMetadata{Quota: &usage.HeaderQuotaMetadata{Primary: &usage.HeaderQuotaWindow{UsedPercent: &used, WindowMinutes: &minutes}}}}
+	event := usage.Event{Provider: "codex", AuthIndex: "spark-one", AccountSnapshot: "quota@example.com", AuthFileSnapshot: "spark.json", TimestampMS: time.Now().UnixMilli(), Failed: true, FailStatusCode: 429, Model: "gpt-5.3-codex-spark", FailBody: `{"error":{"type":"usage_limit_reached"}}`, ResponseMetadata: &usage.ResponseHeaderMetadata{Quota: &usage.HeaderQuotaMetadata{Primary: &usage.HeaderQuotaWindow{UsedPercent: &used, WindowMinutes: &minutes}}}}
 	if err := quotasnapshotsvc.New(st).WriteUsageEvents(ctx, []usage.Event{event}); err != nil {
 		t.Fatal(err)
 	}
 	NewHealthNotificationWorker(st).HandleUsageEvents(ctx, collectorpkg.RuntimeConfig{}, []usage.Event{event})
 	messages := drainHealth(t, st)
-	if len(messages) != 1 || messages[0].Window != "spark-weekly-0" {
+	if len(messages) != 1 || messages[0].Window != "spark-weekly-0" || messages[0].Email != "quota@example.com" || messages[0].Source != "quota_snapshot" {
 		t.Fatalf("scoped snapshot/fallback duplication: %+v", messages)
 	}
 }

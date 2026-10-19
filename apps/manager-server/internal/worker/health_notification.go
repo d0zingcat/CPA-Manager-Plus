@@ -32,14 +32,16 @@ func (w *HealthNotificationWorker) HandleUsageEvents(ctx context.Context, _ coll
 			observations = append(observations, o)
 		}
 		unhealthy := false
+		reasonCode := ""
 		if event.Failed {
 			decision, ok := classifyAccountActionEvent(event)
 			if !ok || decision.Action != credentialpolicy.ActionReauth {
 				continue
 			}
 			unhealthy = true
+			reasonCode = decision.ReasonCode
 		}
-		o := model.HealthObservation{Provider: credentialpolicy.NormalizeProvider(firstNonEmpty(event.AuthProviderSnapshot, event.Provider)), AuthIndex: event.AuthIndex, Dimension: "auth", Unhealthy: unhealthy, ObservedAtMS: event.TimestampMS}
+		o := model.HealthObservation{Provider: credentialpolicy.NormalizeProvider(firstNonEmpty(event.AuthProviderSnapshot, event.Provider)), AuthIndex: event.AuthIndex, Email: model.HealthAccountEmail(event.AccountSnapshot), Source: "usage", StatusCode: event.FailStatusCode, ReasonCode: reasonCode, Dimension: "auth", Unhealthy: unhealthy, ObservedAtMS: event.TimestampMS}
 		observations = append(observations, o)
 	}
 	if err := w.store.ObserveHealthBatch(ctx, observations); err != nil {
@@ -111,6 +113,6 @@ func (w *HealthNotificationWorker) quotaFailureObservation(event usage.Event) (m
 	default:
 		return model.HealthObservation{}, false
 	}
-	o := model.HealthObservation{Provider: provider, AuthIndex: event.AuthIndex, Dimension: "quota:" + window + ":" + quotasnapshotrepo.ScopeFingerprint(scopeKind, scopeKey, models), Window: window, Unhealthy: true, ObservedAtMS: event.TimestampMS, ResetAtMS: resetAtMS}
+	o := model.HealthObservation{Provider: provider, AuthIndex: event.AuthIndex, Email: model.HealthAccountEmail(event.AccountSnapshot), Source: "usage", StatusCode: event.FailStatusCode, Dimension: "quota:" + window + ":" + quotasnapshotrepo.ScopeFingerprint(scopeKind, scopeKey, models), Window: window, Unhealthy: true, ObservedAtMS: event.TimestampMS, ResetAtMS: resetAtMS}
 	return o, true
 }

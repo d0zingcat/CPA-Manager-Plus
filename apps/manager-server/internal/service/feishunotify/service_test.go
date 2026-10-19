@@ -101,12 +101,23 @@ func TestOutboxDeliveryAcknowledgesExactlyOneTransition(t *testing.T) {
 		t.Fatal(err)
 	}
 	sends := 0
-	s.client.Transport = roundTripFunc(func(*http.Request) (*http.Response, error) {
+	s.client.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		var payload struct {
+			Content struct {
+				Text string `json:"text"`
+			} `json:"content"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(payload.Content.Text, "账号邮箱：user@example.com") {
+			t.Fatalf("email lost through outbox: %s", payload.Content.Text)
+		}
 		sends++
 		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(`{"code":0}`))}, nil
 	})
 	ctx := context.Background()
-	if err := st.ObserveHealth(ctx, model.HealthObservation{Provider: "codex", AuthIndex: "one", Dimension: "auth", Unhealthy: true, ObservedAtMS: time.Now().UnixMilli()}); err != nil {
+	if err := st.ObserveHealth(ctx, model.HealthObservation{Provider: "codex", AuthIndex: "one", Email: "user@example.com", Dimension: "auth", Unhealthy: true, ObservedAtMS: time.Now().UnixMilli()}); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.deliverOne(ctx); err != nil {
@@ -139,5 +150,32 @@ func TestMessageUsesBeijingTime(t *testing.T) {
 	text := message(model.HealthObservation{Provider: "codex", AuthIndex: "one", Dimension: "auth", ObservedAtMS: 1, ResetAtMS: 1})
 	if strings.Count(text, "1970-01-01T08:00:00+08:00") != 2 {
 		t.Fatalf("expected explicit Beijing timestamps: %s", text)
+	}
+}
+
+func TestMessageAccountAndFailureContext(t *testing.T) {
+	o := model.HealthObservation{Provider: "codex", AuthIndex: "one", Email: "user@example.com", Source: "usage", StatusCode: 401, ReasonCode: "token_revoked", Dimension: "auth", Unhealthy: true, ObservedAtMS: 1}
+	text := message(o)
+	for _, want := range []string{"账号邮箱：user@example.com", "账号索引：one", "触发来源：请求采集", "HTTP 状态码：401", "失败原因：登录令牌已被撤销或作废", "处理建议："} {
+		if !strings.Contains(text, want) {
+			t.Errorf("missing %q in %s", want, text)
+		}
+	}
+	o.Unhealthy = false
+	if text := message(o); strings.Contains(text, "失败原因") || strings.Contains(text, "处理建议") {
+		t.Fatalf("recovery includes failure guidance: %s", text)
+	}
+	// Older queued payloads remain deliverable without the new metadata.
+	legacy := message(model.HealthObservation{Provider: "codex", AuthIndex: "one", Dimension: "auth", Unhealthy: true, ObservedAtMS: 1})
+	if !strings.Contains(legacy, "账号邮箱：未知（未提供邮箱）") || strings.Contains(legacy, "HTTP 状态码") {
+		t.Fatal(legacy)
+	}
+	o.Email = "not-an-email"
+	o.ReasonCode = "secret raw error"
+	o.Source = "secret raw source"
+	o.StatusCode = 999
+	o.Unhealthy = true
+	if text := message(o); strings.Contains(text, "secret") || strings.Contains(text, "not-an-email") || strings.Contains(text, "999") {
+		t.Fatal(text)
 	}
 }

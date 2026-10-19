@@ -20,7 +20,7 @@ func TestInspectionHealthNotifications(t *testing.T) {
 	now := time.Now().UnixMilli()
 	unauthorized := 401
 	success := 200
-	result := model.CodexInspectionResult{Provider: "xai", AuthIndex: "xai-one", Action: "reauth", ErrorDetail: "invalid_token", StatusCode: &unauthorized, CreatedAtMS: now}
+	result := model.CodexInspectionResult{Provider: "xai", AuthIndex: "xai-one", AccountSnapshot: "inspection@example.com", Action: "reauth", ErrorDetail: "invalid_token", StatusCode: &unauthorized, CreatedAtMS: now}
 	svc.observeInspectionHealth(ctx, result)
 	next := func() *model.HealthObservation {
 		t.Helper()
@@ -40,7 +40,7 @@ func TestInspectionHealthNotifications(t *testing.T) {
 		}
 		return &o
 	}
-	if o := next(); o == nil || !o.Unhealthy {
+	if o := next(); o == nil || !o.Unhealthy || o.Email != "inspection@example.com" || o.Source != "inspection" || o.StatusCode != 401 || o.ReasonCode != "invalid_credentials" {
 		t.Fatal("missing reauth")
 	}
 	result.CreatedAtMS++
