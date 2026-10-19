@@ -162,7 +162,8 @@ func TestMessageAccountAndFailureContext(t *testing.T) {
 		}
 	}
 	o.Unhealthy = false
-	if text := message(o); strings.Contains(text, "失败原因") || strings.Contains(text, "处理建议") {
+	o.StatusCode = 200
+	if text := message(o); strings.Contains(text, "失败原因") || strings.Contains(text, "处理建议") || strings.Contains(text, "HTTP 状态码") {
 		t.Fatalf("recovery includes failure guidance: %s", text)
 	}
 	// Older queued payloads remain deliverable without the new metadata.

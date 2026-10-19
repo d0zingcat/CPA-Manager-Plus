@@ -62,7 +62,7 @@ func TestInspectionHealthNotifications(t *testing.T) {
 	result.CreatedAtMS++
 	result.ErrorKind = "official_api_healthy"
 	svc.observeInspectionHealth(ctx, result)
-	if o := next(); o == nil || o.Unhealthy {
+	if o := next(); o == nil || o.Unhealthy || o.StatusCode != 0 {
 		t.Fatal("missing explicit auth recovery")
 	}
 	used := 100.0
@@ -83,7 +83,7 @@ func TestInspectionHealthNotifications(t *testing.T) {
 	used = 10
 	result.CreatedAtMS++
 	svc.observeInspectionHealth(ctx, result)
-	if o := next(); o == nil || o.Unhealthy {
+	if o := next(); o == nil || o.Unhealthy || o.StatusCode != 0 {
 		t.Fatal("missing xai quota recovery")
 	}
 	used = 100

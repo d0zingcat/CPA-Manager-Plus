@@ -171,7 +171,7 @@ func message(o model.HealthObservation) string {
 			event = "额度已恢复"
 		}
 	}
-	email := model.HealthAccountEmail(o.Email)
+	email := model.HealthAccountEmail(o.Email, "")
 	if email == "" {
 		email = "未知（未提供邮箱）"
 	}
@@ -180,7 +180,7 @@ func message(o model.HealthObservation) string {
 	if source := sources[o.Source]; source != "" {
 		text += "\n触发来源：" + source
 	}
-	if o.StatusCode >= 100 && o.StatusCode <= 599 {
+	if o.Unhealthy && o.StatusCode >= 100 && o.StatusCode <= 599 {
 		text += fmt.Sprintf("\nHTTP 状态码：%d", o.StatusCode)
 	}
 	if o.Unhealthy && o.Dimension == "auth" {

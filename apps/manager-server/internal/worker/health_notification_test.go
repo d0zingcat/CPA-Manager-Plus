@@ -72,7 +72,7 @@ func TestHealthWorkerEvidenceAndRecovery(t *testing.T) {
 	success.FailSummary = ""
 	worker.HandleUsageEvents(ctx, collectorpkg.RuntimeConfig{}, []usage.Event{success})
 	messages = drainHealth(t, st)
-	if len(messages) != 1 || messages[0].Unhealthy {
+	if len(messages) != 1 || messages[0].Unhealthy || messages[0].StatusCode != 0 {
 		t.Fatalf("missing recovery: %+v", messages)
 	}
 	// Stale replay and another account's success must not recover this account.
@@ -110,5 +110,35 @@ func TestHeaderQuotaDoesNotDuplicateScopedSnapshotNotification(t *testing.T) {
 	messages := drainHealth(t, st)
 	if len(messages) != 1 || messages[0].Window != "spark-weekly-0" || messages[0].Email != "quota@example.com" || messages[0].Source != "quota_snapshot" {
 		t.Fatalf("scoped snapshot/fallback duplication: %+v", messages)
+	}
+}
+
+func TestHealthNotificationRejectsFilenameEmailFallback(t *testing.T) {
+	for _, path := range []string{"auth", "quota-error", "quota-snapshot"} {
+		t.Run(path, func(t *testing.T) {
+			st := testutil.NewStore(t, testutil.NewConfig(t))
+			st.ConfigureHealthNotifications(true, []string{"auth_invalid", "quota_exhausted"})
+			event := usage.Event{Provider: "codex", AuthIndex: "one", AccountSnapshot: "codex-user@example.com-plus.json", AuthFileSnapshot: "codex-user@example.com-plus.json", TimestampMS: time.Now().UnixMilli(), Failed: true, FailStatusCode: 401, FailSummary: "invalid_token"}
+			ctx := context.Background()
+			switch path {
+			case "quota-error":
+				event.FailStatusCode = 429
+				event.FailSummary = ""
+				event.FailBody = `{"error":{"type":"usage_limit_reached"}}`
+			case "quota-snapshot":
+				used, minutes := 100.0, 10080.0
+				event.ResponseMetadata = &usage.ResponseHeaderMetadata{Quota: &usage.HeaderQuotaMetadata{Primary: &usage.HeaderQuotaWindow{UsedPercent: &used, WindowMinutes: &minutes}}}
+				if err := quotasnapshotsvc.New(st).WriteUsageEvents(ctx, []usage.Event{event}); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if path != "quota-snapshot" {
+				NewHealthNotificationWorker(st).HandleUsageEvents(ctx, collectorpkg.RuntimeConfig{}, []usage.Event{event})
+			}
+			messages := drainHealth(t, st)
+			if len(messages) != 1 || messages[0].Email != "" {
+				t.Fatalf("file name used as email through %s: %+v", path, messages)
+			}
+		})
 	}
 }

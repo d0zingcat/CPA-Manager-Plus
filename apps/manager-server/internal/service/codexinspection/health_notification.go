@@ -15,9 +15,9 @@ func (s *Service) observeInspectionHealth(ctx context.Context, result model.Code
 		return
 	}
 	observe := func(o model.HealthObservation) {
-		o.Email = model.HealthAccountEmail(result.AccountSnapshot)
+		o.Email = model.HealthAccountEmail(result.AccountSnapshot, result.FileName)
 		o.Source = "inspection"
-		if result.StatusCode != nil {
+		if o.Unhealthy && result.StatusCode != nil {
 			o.StatusCode = *result.StatusCode
 		}
 		if err := s.store.ObserveHealth(ctx, o); err != nil {

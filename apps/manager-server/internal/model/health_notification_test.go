@@ -21,13 +21,18 @@ func TestHealthObservationFreshBoundaries(t *testing.T) {
 }
 
 func TestHealthAccountEmail(t *testing.T) {
-	for _, tc := range []struct{ input, want string }{
-		{" User@example.com ", "User@example.com"},
-		{"", ""}, {"codex-account.json", ""}, {"label", ""},
-		{"User <user@example.com>", ""}, {"user@example.com\nspoof", ""},
+	for _, tc := range []struct{ input, fileName, want string }{
+		{" User@Example.com ", "codex.json", "user@example.com"},
+		{"", "", ""}, {"codex-account.json", "codex-account.json", ""}, {"label", "", ""},
+		{"User <user@example.com>", "", ""}, {"user@example.com\nspoof", "", ""},
+		{"user@example.com.json", "user@example.com.json", ""},
+		{" codex-user@example.com-plus.json ", "codex-user@example.com-plus.json", ""},
+		{"User@Example.com.json", "user@example.com.json", ""},
+		// A suffix alone is not enough to classify an address as a file name.
+		{"user@example.com.json", "different.json", "user@example.com.json"},
 	} {
-		if got := HealthAccountEmail(tc.input); got != tc.want {
-			t.Errorf("email(%q) = %q, want %q", tc.input, got, tc.want)
+		if got := HealthAccountEmail(tc.input, tc.fileName); got != tc.want {
+			t.Errorf("email(%q, %q) = %q, want %q", tc.input, tc.fileName, got, tc.want)
 		}
 	}
 }

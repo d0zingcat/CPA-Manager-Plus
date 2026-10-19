@@ -64,12 +64,16 @@ func HealthEvent(o HealthObservation) string {
 }
 
 // HealthAccountEmail accepts only a plain email from the existing account snapshot.
-// Labels, file names and other identity fallbacks are not email evidence.
-func HealthAccountEmail(snapshot string) string {
+// A snapshot matching the credential file name is a display fallback, not email
+// evidence, even if net/mail accepts it as an address.
+func HealthAccountEmail(snapshot, fileName string) string {
 	value := strings.TrimSpace(snapshot)
+	if strings.EqualFold(value, strings.TrimSpace(fileName)) {
+		return ""
+	}
 	address, err := mail.ParseAddress(value)
 	if err != nil || address.Address != value || !strings.Contains(value, "@") {
 		return ""
 	}
-	return value
+	return strings.ToLower(value)
 }

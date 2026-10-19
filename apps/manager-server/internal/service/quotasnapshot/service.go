@@ -313,7 +313,7 @@ func (s *Service) Write(ctx context.Context, req WriteRequest) (WriteResponse, e
 			}
 
 			o := model.HealthObservation{Provider: snapshot.Provider, AuthIndex: req.Entries[write.ResponseIndex].Account.AuthIndex,
-				Email: model.HealthAccountEmail(req.Entries[write.ResponseIndex].Account.AccountSnapshot), Source: "quota_snapshot",
+				Email: model.HealthAccountEmail(req.Entries[write.ResponseIndex].Account.AccountSnapshot, req.Entries[write.ResponseIndex].Account.AuthFileSnapshot), Source: "quota_snapshot",
 				Dimension: "quota:" + snapshot.ProviderWindowID + ":" + snapshot.ScopeFingerprint, Window: snapshot.ProviderWindowID,
 				Unhealthy: *snapshot.UsedPercent >= 100, ObservedAtMS: snapshot.ObservedAtMS}
 			if snapshot.CycleEndMS != nil {
