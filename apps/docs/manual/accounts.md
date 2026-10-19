@@ -84,3 +84,7 @@ CPAMP 按凭证身份和观察时间合并这些证据。较新的健康结果�
 ## 安全建议
 
 凭证文件包含敏感信息。不要分享完整 JSON、OAuth Token、API Key、Management Key、`Set-Cookie` 或未脱敏 Authorization Header。排障时优先提供脱敏后的请求摘要、账号状态截图和日志时间点。
+
+## 飞书事件提醒
+
+完整 Manager Server 可选配置飞书自定义机器人，在需要重新登录、额度耗尽或明确恢复时发送通知。通知默认关闭，详见[飞书账号事件通知](./feishu-notifications.md)。

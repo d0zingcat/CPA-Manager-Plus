@@ -1740,7 +1740,8 @@ func (s *Service) inspectSingleAccount(
 	settings model.ManagerCodexInspectionConfig,
 	item account,
 	logger runLogger,
-) model.CodexInspectionResult {
+) (result model.CodexInspectionResult) {
+	defer func() { result.ObservedAtMS = time.Now().UnixMilli() }()
 	if item.Provider == "xai" {
 		return s.inspectSingleXAIAccount(ctx, setup, settings, item, logger)
 	}
@@ -4118,9 +4119,14 @@ func (s *Service) persistInspectionResults(
 			})
 			continue
 		}
+		observed := stored
+		if result.ObservedAtMS > 0 {
+			observed.CreatedAtMS = result.ObservedAtMS
+		}
+		s.observeInspectionHealth(persistCtx, observed)
 		results[index] = stored
 		snapshotCtx, snapshotCancel := context.WithTimeout(persistCtx, resultWriteTimeout)
-		snapshotErr := s.quotaSnapshots.WriteCodexInspectionResult(snapshotCtx, stored)
+		snapshotErr := s.quotaSnapshots.WriteCodexInspectionResult(snapshotCtx, observed)
 		snapshotCancel()
 		if snapshotErr != nil {
 			failures++

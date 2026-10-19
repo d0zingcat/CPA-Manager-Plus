@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/seakee/cpa-manager-plus/apps/manager-server/internal/model"
@@ -142,8 +143,12 @@ type UsagePricingAccountSnapshot struct {
 }
 
 type Store struct {
-	db            *sql.DB
-	modelPricesMu sync.RWMutex
+	// Evidence cache is protected by healthNotificationsMu.
+	healthEvidenceCache      map[string]healthEvidence
+	healthNotificationPolicy atomic.Pointer[model.HealthNotificationPolicy]
+	healthNotificationsMu    sync.Mutex
+	db                       *sql.DB
+	modelPricesMu            sync.RWMutex
 
 	Settings         setting.Repository
 	UsageEvents      usageevent.Repository

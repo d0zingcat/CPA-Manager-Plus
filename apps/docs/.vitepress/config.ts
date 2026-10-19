@@ -37,6 +37,7 @@ const zhSidebar: DefaultTheme.Sidebar = [
       { text: '请求监控', link: '/manual/monitoring' },
       { text: '用量分析', link: '/manual/usage-analytics' },
       { text: '账号巡检（Codex / xAI）', link: '/manual/codex-inspection' },
+      { text: '飞书账号事件通知', link: '/manual/feishu-notifications' },
       { text: '账号处理队列', link: '/manual/account-actions' },
       { text: '插件管理', link: '/manual/plugins' },
       { text: '配置中心', link: '/manual/configuration' },

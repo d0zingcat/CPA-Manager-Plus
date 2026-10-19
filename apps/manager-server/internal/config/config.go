@@ -30,6 +30,10 @@ const (
 )
 
 type Config struct {
+	FeishuEnvSet                 bool
+	FeishuEnabled                bool
+	FeishuWebhookURL             string `json:"-"`
+	FeishuSigningSecret          string `json:"-"`
 	HTTPAddr                     string
 	DataDir                      string
 	DBPath                       string
@@ -154,7 +158,23 @@ func LoadWithOptions(options LoadOptions) (Config, error) {
 		dataKeyPath = filepath.Join(dataDir, "data.key")
 	}
 
+	feishuEnabled := envBool("CPA_MANAGER_FEISHU_ENABLED", false)
+	var feishuWebhook, feishuSecret string
+	if feishuEnabled {
+		feishuWebhook, err = readNotificationSecret("CPA_MANAGER_FEISHU_WEBHOOK_URL")
+		if err != nil {
+			return Config{}, err
+		}
+		feishuSecret, err = readNotificationSecret("CPA_MANAGER_FEISHU_SIGNING_SECRET")
+		if err != nil {
+			return Config{}, err
+		}
+	}
 	return Config{
+		FeishuEnabled:                feishuEnabled,
+		FeishuEnvSet:                 hasEnv("CPA_MANAGER_FEISHU_ENABLED") || hasEnv("CPA_MANAGER_FEISHU_WEBHOOK_URL") || hasEnv("CPA_MANAGER_FEISHU_WEBHOOK_URL_FILE") || hasEnv("CPA_MANAGER_FEISHU_SIGNING_SECRET") || hasEnv("CPA_MANAGER_FEISHU_SIGNING_SECRET_FILE"),
+		FeishuWebhookURL:             feishuWebhook,
+		FeishuSigningSecret:          feishuSecret,
 		HTTPAddr:                     env("HTTP_ADDR", stringFallback(cfgFile.HTTPAddr, "0.0.0.0:18317")),
 		DataDir:                      dataDir,
 		DBPath:                       dbPath,
@@ -422,4 +442,20 @@ func readSecret(envKey string, fileEnvKey string, defaultFile string) string {
 		return ""
 	}
 	return strings.TrimSpace(string(data))
+}
+
+// An explicitly configured but unreadable signing file must not silently turn
+// signed delivery into unsigned delivery. Error strings never contain secrets.
+func readNotificationSecret(key string) (string, error) {
+	if value := strings.TrimSpace(os.Getenv(key)); value != "" {
+		return value, nil
+	}
+	if path := strings.TrimSpace(os.Getenv(key + "_FILE")); path != "" {
+		data, err := os.ReadFile(path)
+		if err != nil || len(strings.TrimSpace(string(data))) == 0 {
+			return "", fmt.Errorf("%s_FILE must contain a readable non-empty secret", key)
+		}
+		return strings.TrimSpace(string(data)), nil
+	}
+	return "", nil
 }

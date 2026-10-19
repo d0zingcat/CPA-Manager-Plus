@@ -38,6 +38,7 @@ import iconGrokDark from '@/assets/icons/grok-dark.svg';
 import iconDeepseek from '@/assets/icons/deepseek.svg';
 import iconMinimax from '@/assets/icons/minimax.svg';
 import iconMeta from '@/assets/icons/meta.svg';
+import { FeishuNotificationsCard } from './components/FeishuNotificationsCard';
 import { DatabaseStatusCard } from './components/DatabaseStatusCard';
 import { useManagerUpdates } from './ManagerUpdates';
 import styles from './SystemPage.module.scss';
@@ -343,6 +344,10 @@ export function SystemPage() {
             </a>
           </div>
         </Card>
+
+        {featureAvailability.managerServiceAvailable && auth.role === 'admin' && (
+          <FeishuNotificationsCard base={featureAvailability.managerServiceBase} />
+        )}
 
         {featureAvailability.managerServiceAvailable && (
           <DatabaseStatusCard

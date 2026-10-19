@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"sort"
 	"strings"
@@ -298,6 +299,30 @@ func (s *Service) Write(ctx context.Context, req WriteRequest) (WriteResponse, e
 	}
 	if err := s.store.QuotaSnapshots.InsertObservationWrites(ctx, writes); err != nil {
 		return WriteResponse{}, err
+	}
+	// Notifications are best effort after quota persistence; delivery never blocks
+	// on Feishu. Missing percentages and already expired windows are ignored.
+	var healthObservations []model.HealthObservation
+	for _, write := range writes {
+		for _, snapshot := range write.Snapshots {
+			if snapshot.UsedPercent == nil {
+				continue
+			}
+			if snapshot.CycleEndMS != nil && *snapshot.CycleEndMS <= snapshot.ObservedAtMS {
+				continue
+			}
+
+			o := model.HealthObservation{Provider: snapshot.Provider, AuthIndex: req.Entries[write.ResponseIndex].Account.AuthIndex,
+				Dimension: "quota:" + snapshot.ProviderWindowID + ":" + snapshot.ScopeFingerprint, Window: snapshot.ProviderWindowID,
+				Unhealthy: *snapshot.UsedPercent >= 100, ObservedAtMS: snapshot.ObservedAtMS}
+			if snapshot.CycleEndMS != nil {
+				o.ResetAtMS = *snapshot.CycleEndMS
+			}
+			healthObservations = append(healthObservations, o)
+		}
+	}
+	if err := s.store.ObserveHealthBatch(ctx, healthObservations); err != nil {
+		log.Print("[feishu] quota observation persistence failed")
 	}
 	for _, write := range writes {
 		if write.ResponseIndex >= 0 && write.ResponseIndex < len(items) {

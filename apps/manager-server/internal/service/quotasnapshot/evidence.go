@@ -554,6 +554,9 @@ func eventObservationID(event usage.Event) string {
 }
 
 func inspectionObservationID(result model.CodexInspectionResult) string {
+	if result.RunID == 0 && result.ObservedAtMS > 0 {
+		return fmt.Sprintf("local:%d", result.ObservedAtMS)
+	}
 	if result.ID > 0 {
 		return fmt.Sprintf("run:%d:result:%d", result.RunID, result.ID)
 	}

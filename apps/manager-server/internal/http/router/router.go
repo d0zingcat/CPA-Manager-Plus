@@ -15,6 +15,7 @@ import (
 	managerconfigcontroller "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/http/controller/managerconfig"
 	modelpricecontroller "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/http/controller/modelprice"
 	monitoringcontroller "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/http/controller/monitoring"
+	notificationcontroller "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/http/controller/notifications"
 	panelcontroller "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/http/controller/panel"
 	proxycontroller "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/http/controller/proxy"
 	quotacooldowncontroller "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/http/controller/quotacooldown"
@@ -46,6 +47,8 @@ func New(appCtx *app.Context) http.Handler {
 	panelHandler := &panelcontroller.Handler{App: appCtx}
 
 	mux := http.NewServeMux()
+	notifications := &notificationcontroller.Handler{App: appCtx}
+	mux.HandleFunc("/usage-service/notifications/", middleware.WithCORS(appCtx.Config, notifications.Handle))
 	accessHandler := &accesscontroller.Handler{App: appCtx}
 	mux.HandleFunc("/usage-service/auth/session", middleware.WithCORS(appCtx.Config, accessHandler.Session))
 	mux.HandleFunc("/usage-service/readonly-key", middleware.WithCORS(appCtx.Config, accessHandler.Key))

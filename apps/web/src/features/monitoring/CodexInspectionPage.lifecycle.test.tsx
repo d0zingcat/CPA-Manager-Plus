@@ -17,6 +17,8 @@ const mocks = vi.hoisted(() => ({
     config: null,
   },
   executeActions: vi.fn(),
+  managerAvailable: false,
+  reportLocal: vi.fn(),
   loadLastRun: vi.fn(),
   lastCodexReauthProps: null as null | {
     open: boolean;
@@ -24,6 +26,16 @@ const mocks = vi.hoisted(() => ({
   },
   showConfirmation: vi.fn(),
   showNotification: vi.fn(),
+}));
+
+vi.mock('@/hooks/usePanelFeatureAvailability', () => ({
+  usePanelFeatureAvailability: () => ({
+    managerServiceAvailable: mocks.managerAvailable,
+    managerServiceBase: 'http://manager.local',
+  }),
+}));
+vi.mock('@/services/api/notifications', () => ({
+  notificationsApi: { reportLocal: mocks.reportLocal },
 }));
 
 vi.mock('react-i18next', () => ({
@@ -191,6 +203,8 @@ const isExecuting = (renderer: ReactTestRenderer): boolean =>
 describe('CodexInspectionPage connection lifecycle', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.managerAvailable = false;
+    mocks.reportLocal.mockResolvedValue({ accepted: true });
     mocks.authState.apiBase = 'http://cpa-a.local:8317';
     mocks.authState.managementKey = 'cpa-key-a';
     mocks.authState.connectionStatus = 'connected';
@@ -460,5 +474,34 @@ describe('CodexInspectionPage connection lifecycle', () => {
     });
 
     act(() => renderer.unmount());
+  });
+  it('warns once after a successful report contains skipped results', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(2000);
+    mocks.managerAvailable = true;
+    mocks.reportLocal.mockResolvedValue({
+      accepted: true,
+      acceptedCount: 0,
+      skippedCount: 1,
+      skippedReasons: { expired: 0, clockAhead: 1, superseded: 0, missingIdentity: 0 },
+    });
+    let renderer: ReactTestRenderer | undefined;
+    try {
+      await act(async () => {
+        renderer = create(
+          <MemoryRouter>
+            <CodexInspectionPage />
+          </MemoryRouter>
+        );
+        await Promise.resolve();
+      });
+      expect(mocks.reportLocal).toHaveBeenCalled();
+      expect(
+        mocks.showNotification.mock.calls.filter(([message]) => message === 'feishu.report_skipped')
+      ).toHaveLength(1);
+      expect(mocks.showNotification).toHaveBeenCalledWith('feishu.report_skipped', 'warning');
+    } finally {
+      if (renderer) await act(async () => renderer!.unmount());
+      clock.mockRestore();
+    }
   });
 });
