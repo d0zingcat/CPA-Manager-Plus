@@ -81,3 +81,7 @@ USAGE_COLLECTOR_MODE=auto
 - `USAGE_ARCHIVE_RETENTION_ENABLED` 与 `USAGE_ARCHIVE_RETENTION_DAYS` 控制自动 retention；retention 仍受小时汇总和归档覆盖门禁约束。启用后，一旦归档校验和删除覆盖门禁满足，就会自动删除超过保留期的历史原始事件。在发生第一次 raw deletion 之后，已配置价格的模型集合和上下文分层阈值结构将进入 fail-closed 冻结，不再允许结构性变动；但纯单价调整（包括服务层价格）仍可继续。
 
 完整 export 只覆盖导出开始时仍存在的 raw usage events，不会把已删除的 archive segment 自动合并回 JSONL，也不替代包含 SQLite、WAL/SHM、`data.key` 和 `usage-archives/` 的备份。
+
+## 飞书账号事件通知
+
+管理员可在系统信息页即时配置，机器人凭证使用 `data.key` 加密保存。也可通过 `CPA_MANAGER_FEISHU_ENABLED` 等环境变量及 Secret 文件固定配置，此时页面锁定；凭证不回显给浏览器。配置、事件范围、测试命令与回滚步骤见[飞书账号事件通知](../manual/feishu-notifications.md)。

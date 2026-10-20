@@ -20,6 +20,7 @@ import (
 	collectorsvc "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/service/collector"
 	"github.com/seakee/cpa-manager-plus/apps/manager-server/internal/service/cpaauthfiles"
 	dashboardsvc "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/service/dashboard"
+	"github.com/seakee/cpa-manager-plus/apps/manager-server/internal/service/feishunotify"
 	managerconfigsvc "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/service/managerconfig"
 	modelpricesvc "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/service/modelprice"
 	monitoringsvc "github.com/seakee/cpa-manager-plus/apps/manager-server/internal/service/monitoring"
@@ -45,10 +46,12 @@ type DatabaseMaintenanceStatusProvider interface {
 }
 
 type Context struct {
-	UpdateCheckService *updatechecksvc.Service
-	Config             config.Config
-	Store              *store.Store
-	Collector          *collector.Manager
+	FeishuNotifications     *feishunotify.Service
+	FeishuNotificationError error
+	UpdateCheckService      *updatechecksvc.Service
+	Config                  config.Config
+	Store                   *store.Store
+	Collector               *collector.Manager
 
 	StartedAt int64
 	ServiceID string
@@ -164,19 +167,22 @@ func fromExisting(
 		AggregateReadsEnabled: cfg.DashboardHourlyRollupEnabled,
 	}))
 	authFileMutationCoordinator := cpaauthfiles.NewMutationCoordinator()
+	feishuNotifications, feishuErr := feishunotify.New(st, cfg)
 	return &Context{
-		UpdateCheckService:   updatechecksvc.New(st, buildinfo.Version, buildinfo.SourceCommit, os.Getenv("CPAMP_UPDATE_CHECK_ENABLED") != "false"),
-		Config:               cfg,
-		Store:                st,
-		Collector:            collectorManager,
-		StartedAt:            startedAt,
-		ServiceID:            serviceID,
-		AdminAuthService:     adminauthsvc.New(cfg, st),
-		SetupService:         setupsvc.New(cfg, st, collectorService, managerConfigService, startedAt, serviceID),
-		ManagerConfigService: managerConfigService,
-		CollectorService:     collectorService,
-		UsageService:         usageService,
-		DashboardService:     dashboardsvc.New(st, cfg.DashboardHourlyRollupEnabled),
+		FeishuNotifications:     feishuNotifications,
+		FeishuNotificationError: feishuErr,
+		UpdateCheckService:      updatechecksvc.New(st, buildinfo.Version, buildinfo.SourceCommit, os.Getenv("CPAMP_UPDATE_CHECK_ENABLED") != "false"),
+		Config:                  cfg,
+		Store:                   st,
+		Collector:               collectorManager,
+		StartedAt:               startedAt,
+		ServiceID:               serviceID,
+		AdminAuthService:        adminauthsvc.New(cfg, st),
+		SetupService:            setupsvc.New(cfg, st, collectorService, managerConfigService, startedAt, serviceID),
+		ManagerConfigService:    managerConfigService,
+		CollectorService:        collectorService,
+		UsageService:            usageService,
+		DashboardService:        dashboardsvc.New(st, cfg.DashboardHourlyRollupEnabled),
 		CodexInspectionService: codexinspectionsvc.NewWithOptions(
 			st,
 			managerConfigService,

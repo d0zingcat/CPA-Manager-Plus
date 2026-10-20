@@ -21,6 +21,7 @@ const { mocks, axiosInstance } = vi.hoisted(() => {
 vi.mock('axios', () => ({
   default: {
     create: vi.fn(() => axiosInstance),
+    interceptors: { request: { use: vi.fn() } },
     isAxiosError: (error: unknown) =>
       Boolean(error && typeof error === 'object' && 'isAxiosError' in error),
   },

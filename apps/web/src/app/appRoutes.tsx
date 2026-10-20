@@ -1,4 +1,5 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
+import { AccessLayout } from '@/features/readonly/AccessLayout';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { DemoPage } from '@/pages/DemoPage';
 import { LoginPage } from '@/pages/LoginPage';
@@ -20,7 +21,7 @@ const appRoutes: RouteObject[] = [
             path: '/*',
             element: (
               <ProtectedRoute>
-                <MainLayout />
+                <AccessLayout admin={<MainLayout />} />
               </ProtectedRoute>
             ),
           },

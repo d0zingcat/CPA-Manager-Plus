@@ -118,7 +118,7 @@ export function OAuthModelAliasCard(props: OAuthModelAliasCardProps) {
               {t('oauth_model_alias.view_mode_diagram')}
             </Button>
           </div>
-          <Button size="sm" onClick={onAdd} disabled={writesDisabled}>
+          <Button writeAction size="sm" onClick={onAdd} disabled={writesDisabled}>
             {t('oauth_model_alias.add')}
           </Button>
         </div>

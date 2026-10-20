@@ -386,6 +386,7 @@ export function AiProvidersOpenAIEditPage() {
             {t('ai_providers.openai_keys_count')}: {getOpenAIKeyCount(list)}
           </span>
           <Button
+            writeAction
             variant="secondary"
             size="sm"
             onClick={addEntry}
@@ -410,7 +411,8 @@ export function AiProvidersOpenAIEditPage() {
             const keyStatus = keyTestStatuses[index]?.status ?? 'idle';
             const weightError = getCredentialWeightError(entry.weight);
             const canTestKey =
-              hasConfiguredModels && getOpenAITestableKeyIndexes(form.apiKeyEntries).includes(index);
+              hasConfiguredModels &&
+              getOpenAITestableKeyIndexes(form.apiKeyEntries).includes(index);
 
             return (
               <div key={index} className={styles.keyTableRow}>
@@ -487,6 +489,7 @@ export function AiProvidersOpenAIEditPage() {
                     {t('ai_providers.openai_test_single_action')}
                   </Button>
                   <Button
+                    writeAction
                     variant="ghost"
                     size="xs"
                     onClick={() => removeEntry(index)}
@@ -524,6 +527,7 @@ export function AiProvidersOpenAIEditPage() {
             {t('common.back')}
           </Button>
           <Button
+            writeAction
             size="sm"
             onClick={() => void handleSave()}
             loading={saving}
@@ -607,6 +611,7 @@ export function AiProvidersOpenAIEditPage() {
                 </label>
                 <div className={styles.modelConfigToolbar}>
                   <Button
+                    writeAction
                     variant="secondary"
                     size="sm"
                     onClick={() =>

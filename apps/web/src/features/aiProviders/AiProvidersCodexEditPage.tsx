@@ -666,11 +666,13 @@ export function AiProvidersCodexEditPage() {
       } else {
         await providersApi.createCodexConfig(payload);
       }
-      const syncedList = await providersApi.getCodexConfigs().catch(() =>
-        editIndex !== null
-          ? configs.map((item, index) => (index === editIndex ? payload : item))
-          : [...configs, payload]
-      );
+      const syncedList = await providersApi
+        .getCodexConfigs()
+        .catch(() =>
+          editIndex !== null
+            ? configs.map((item, index) => (index === editIndex ? payload : item))
+            : [...configs, payload]
+        );
       updateConfigValue('codex-api-key', syncedList);
       clearCache('codex-api-key');
       showNotification(
@@ -733,6 +735,7 @@ export function AiProvidersCodexEditPage() {
             {t('common.back')}
           </Button>
           <Button
+            writeAction
             size="sm"
             onClick={handleSave}
             loading={saving}
@@ -834,6 +837,7 @@ export function AiProvidersCodexEditPage() {
                 </label>
                 <div className={styles.modelConfigToolbar}>
                   <Button
+                    writeAction
                     variant="secondary"
                     size="sm"
                     onClick={() =>

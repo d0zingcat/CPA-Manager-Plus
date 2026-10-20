@@ -160,6 +160,7 @@ export interface CodexInspectionQuotaWindow {
 }
 
 export interface CodexInspectionResultItem extends CodexInspectionAccount {
+  observedAtMs?: number;
   action: CodexInspectionAction;
   actionReason: string;
   statusCode: number | null;
@@ -543,6 +544,7 @@ export const createCodexInspectionSession = ({
           : inspectSingleAccount(account, resolvedSettings, onLog, translate, requestConfig)
       )
         .then((inspectionResult) => {
+          inspectionResult.observedAtMs = Date.now();
           resultMap.set(inspectionResult.key, inspectionResult);
           emitResultsChange(inspectionResult);
         })
@@ -564,6 +566,7 @@ export const createCodexInspectionSession = ({
           );
           const fallbackResult: CodexInspectionResultItem = {
             ...account,
+            observedAtMs: Date.now(),
             action: 'keep',
             actionReason: '探测异常，保留账号',
             statusCode: null,

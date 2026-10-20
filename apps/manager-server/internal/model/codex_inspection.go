@@ -159,6 +159,7 @@ type CodexInspectionQuotaModelScope struct {
 }
 
 type CodexInspectionResult struct {
+	ObservedAtMS           int64                        `json:"-"` // Probe completion time, separate from insertion time.
 	ID                     int64                        `json:"id"`
 	RunID                  int64                        `json:"runId"`
 	AccountKey             string                       `json:"accountKey"`

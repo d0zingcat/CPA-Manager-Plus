@@ -92,22 +92,29 @@ func ExtractBearerToken(header string) string {
 	return strings.TrimSpace(header[len(prefix):])
 }
 
-func LoadOrCreateDataKey(rawValue string, keyPath string) ([]byte, bool, error) {
+// LoadDataKey reads an existing key without creating directories or files.
+func LoadDataKey(rawValue string, keyPath string) ([]byte, error) {
 	if strings.TrimSpace(rawValue) != "" {
-		key, err := deriveDataKey(rawValue)
-		return key, false, err
+		return deriveDataKey(rawValue)
 	}
 	keyPath = strings.TrimSpace(keyPath)
 	if keyPath == "" {
-		return nil, false, errors.New("data key path is required")
+		return nil, errors.New("data key path is required")
 	}
-	if data, err := os.ReadFile(keyPath); err == nil {
-		key, err := parseStoredDataKey(strings.TrimSpace(string(data)))
+	data, err := os.ReadFile(keyPath)
+	if err != nil {
+		return nil, fmt.Errorf("read data key %s: %w", keyPath, err)
+	}
+	return parseStoredDataKey(strings.TrimSpace(string(data)))
+}
+
+func LoadOrCreateDataKey(rawValue string, keyPath string) ([]byte, bool, error) {
+	key, err := LoadDataKey(rawValue, keyPath)
+	if err == nil || !errors.Is(err, os.ErrNotExist) {
 		return key, false, err
-	} else if !os.IsNotExist(err) {
-		return nil, false, fmt.Errorf("read data key %s: %w", keyPath, err)
 	}
-	key, err := randomBytes(32)
+	keyPath = strings.TrimSpace(keyPath)
+	key, err = randomBytes(32)
 	if err != nil {
 		return nil, false, err
 	}

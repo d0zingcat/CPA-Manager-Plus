@@ -264,3 +264,9 @@ docker compose -f docker-compose.manager.yml up --build
 ## 许可证
 
 [MIT](https://github.com/seakee/CPA-Manager-Plus/blob/main/LICENSE) — Copyright 2026 Seakee。
+
+### 只读管理访问
+
+在 Manager Server 模式下，管理员可以进入 **配置 → Manager → 只读访问**，生成、轮换或禁用一个共享只读密钥。明文仅显示一次，服务端保存带盐哈希。轮换或禁用后，旧密钥的后续请求立即失效。
+
+使用同一登录页输入只读密钥，进入与管理员相同的管理界面、导航及内置页面，查看仪表盘、用量分析、请求监控、账户、配置、价格和运维状态。筛选、分页及图表继续可用；保存、删除、导入、授权、密钥轮换等操作不可用，服务端同时拒绝写入。API key、OAuth token、配置密钥、原始请求及可能包含凭据的日志正文会脱敏；凭据文件及原始数据导出、任意 API 调用、未知接口和第三方插件资源不向只读用户开放。此权限覆盖全站，不按客户端隔离，仅适用于 Manager Server。

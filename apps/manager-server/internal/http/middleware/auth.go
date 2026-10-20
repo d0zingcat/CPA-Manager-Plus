@@ -19,6 +19,9 @@ type PanelVerifier interface {
 }
 
 func AuthorizeAdmin(w http.ResponseWriter, r *http.Request, verifier AdminVerifier) bool {
+	if ViewerRead(r) {
+		return true
+	}
 	ok, err := verifier.VerifyHeader(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		writeAuthorizationFailure(w, "admin", err)
@@ -32,6 +35,9 @@ func AuthorizeAdmin(w http.ResponseWriter, r *http.Request, verifier AdminVerifi
 }
 
 func AuthorizePanel(w http.ResponseWriter, r *http.Request, verifier PanelVerifier) bool {
+	if ViewerRead(r) {
+		return true
+	}
 	ok, err := verifier.VerifyPanelHeader(r.Context(), r.Header.Get("Authorization"))
 	if err != nil {
 		writeAuthorizationFailure(w, "panel", err)

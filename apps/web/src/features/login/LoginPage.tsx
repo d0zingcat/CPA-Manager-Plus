@@ -163,13 +163,13 @@ export function LoginPage() {
   const loginCredential = isManagerServerMode ? adminKey : cpaManagementKey;
   const redirectAfterLogin = useMemo(() => resolveRedirectPath(location.state), [location.state]);
   const loginCredentialLabel = isManagerServerMode
-    ? t('login.admin_key_label')
+    ? t('readonly.login_key_label')
     : t('login.cpa_management_key_label');
   const loginCredentialPlaceholder = isManagerServerMode
-    ? t('login.admin_key_placeholder')
+    ? t('readonly.login_key_placeholder')
     : t('login.cpa_management_key_placeholder');
   const loginCredentialHint = isManagerServerMode
-    ? t('login.admin_key_hint')
+    ? t('readonly.login_key_hint')
     : t('login.cpa_management_key_hint');
 
   const usageSetupSteps = useMemo<UsageSetupStep[]>(

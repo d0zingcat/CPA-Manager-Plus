@@ -45,6 +45,21 @@ func main() {
 	}
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
+		case "test-feishu-notification":
+			cfg, err := config.LoadWithoutCreatingDefault()
+			if err != nil {
+				log.Fatal("load notification configuration failed")
+			}
+			// Read existing settings only; never migrate data or start collectors.
+			sender, err := newFeishuTestSender(cfg)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if err := sender.SendTest(context.Background()); err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println("Feishu notification delivered")
+			return
 		case "reset-admin-key", "reset-admin-password":
 			if err := adminreset.Run(context.Background(), os.Args[2:], os.Stdout, os.Stderr); err != nil {
 				log.Printf("reset admin key: %v", err)
@@ -182,6 +197,11 @@ func runServer() {
 	}
 
 	serverApp := httpapi.New(cfg, db, manager)
+	if err := serverApp.AppContext().FeishuNotificationError; err != nil {
+		log.Fatalf("configure Feishu notifications: %v", err)
+	}
+	feishuNotifications := serverApp.AppContext().FeishuNotifications
+
 	serverApp.AppContext().DatabaseMaintenance = walMaintenance
 	recoveryCtx, cancelRecovery := context.WithTimeout(context.Background(), 10*time.Second)
 	if err := serverApp.AppContext().CodexInspectionService.Recover(recoveryCtx); err != nil {
@@ -234,6 +254,7 @@ func runServer() {
 	serverApp.AppContext().AutomationRuntimeService = automationRuntime
 	manager.SetUsageEventHandler(worker.NewUsageEventFanout(
 		automationRuntime.UsageEventHandler(),
+		worker.NewHealthNotificationWorker(db),
 		accountHistoryRollupWorker,
 		usageDerivedRollupWorker,
 		usageHourlyAggregateWorker,
@@ -278,6 +299,7 @@ func runServer() {
 	}
 	if ctx.Err() == nil {
 		log.Printf("[startup] starting background workers")
+		go feishuNotifications.Run(ctx)
 		automationRuntime.Start(ctx)
 		codexInspectionWorker.Start(ctx)
 		accountHistoryRollupWorker.Start(ctx)

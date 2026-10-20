@@ -61,7 +61,7 @@ export function OAuthExcludedCard(props: OAuthExcludedCardProps) {
     <Card
       title={t('oauth_excluded.title')}
       extra={
-        <Button size="sm" onClick={onAdd} disabled={writesDisabled}>
+        <Button writeAction size="sm" onClick={onAdd} disabled={writesDisabled}>
           {t('oauth_excluded.add')}
         </Button>
       }

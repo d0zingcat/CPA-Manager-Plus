@@ -1,3 +1,4 @@
+import { assertReadonlyRequest } from './readonlyAccess';
 /**
  * Axios API 客户端
  * 替代原项目 src/core/api-client.js
@@ -36,6 +37,11 @@ export const createScopedApiRequestConfig = (
       }
     : {},
   cpampScopedRequest: true,
+});
+
+axios.interceptors.request.use((config) => {
+  assertReadonlyRequest(config.method || 'get', config.url || '', config.headers.Authorization);
+  return config;
 });
 
 class ApiClient {
@@ -156,6 +162,11 @@ class ApiClient {
           config.headers.Authorization = `Bearer ${this.managementKey}`;
         }
 
+        assertReadonlyRequest(
+          config.method || 'get',
+          config.url || '',
+          config.headers.Authorization
+        );
         return config;
       },
       (error) => Promise.reject(this.handleError(error))

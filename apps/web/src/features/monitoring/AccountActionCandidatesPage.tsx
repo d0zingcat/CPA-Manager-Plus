@@ -139,15 +139,27 @@ export function AccountActionCandidatesPage() {
       try {
         switch (action) {
           case 'ignore':
-            await usageServiceApi.ignoreAccountActionCandidate(managerBase, managementKey, candidate.id);
+            await usageServiceApi.ignoreAccountActionCandidate(
+              managerBase,
+              managementKey,
+              candidate.id
+            );
             showNotification(t('account_actions.ignore_success'), 'success');
             break;
           case 'resolve':
-            await usageServiceApi.resolveAccountActionCandidate(managerBase, managementKey, candidate.id);
+            await usageServiceApi.resolveAccountActionCandidate(
+              managerBase,
+              managementKey,
+              candidate.id
+            );
             showNotification(t('account_actions.resolve_success'), 'success');
             break;
           case 'enable':
-            await usageServiceApi.enableAccountActionCandidate(managerBase, managementKey, candidate.id);
+            await usageServiceApi.enableAccountActionCandidate(
+              managerBase,
+              managementKey,
+              candidate.id
+            );
             showNotification(t('account_actions.enable_success'), 'success');
             break;
           case 'delete':
@@ -245,7 +257,9 @@ export function AccountActionCandidatesPage() {
               onClick={() => setFilter(key)}
             >
               {t(`account_actions.filter_${key}`)}
-              {key !== 'all' && typeof statusCounts[key] === 'number' ? ` · ${statusCounts[key]}` : ''}
+              {key !== 'all' && typeof statusCounts[key] === 'number'
+                ? ` · ${statusCounts[key]}`
+                : ''}
             </button>
           ))}
         </div>
@@ -304,7 +318,9 @@ export function AccountActionCandidatesPage() {
                         <div className={styles.accountCell}>
                           <strong>{candidate.accountSnapshot || candidate.authLabel || '-'}</strong>
                           <span>{candidate.provider || '-'}</span>
-                          {candidate.accountIdSnapshot ? <small>{candidate.accountIdSnapshot}</small> : null}
+                          {candidate.accountIdSnapshot ? (
+                            <small>{candidate.accountIdSnapshot}</small>
+                          ) : null}
                         </div>
                       </td>
                       <td>
@@ -338,7 +354,11 @@ export function AccountActionCandidatesPage() {
                             </small>
                           ) : null}
                           {header.traceId ? <small>{`Trace: ${header.traceId}`}</small> : null}
-                          <small>{t('account_actions.last_updated', { time: formatMs(candidate.updatedAtMs) })}</small>
+                          <small>
+                            {t('account_actions.last_updated', {
+                              time: formatMs(candidate.updatedAtMs),
+                            })}
+                          </small>
                         </div>
                       </td>
                       <td>
@@ -379,6 +399,7 @@ export function AccountActionCandidatesPage() {
                           {candidate.status === 'pending' && (
                             <>
                               <Button
+                                writeAction
                                 variant="secondary"
                                 size="xs"
                                 onClick={() => runAction(candidate, 'enable')}
@@ -388,6 +409,7 @@ export function AccountActionCandidatesPage() {
                                 {t('account_actions.enable')}
                               </Button>
                               <Button
+                                writeAction
                                 variant="secondary"
                                 size="xs"
                                 onClick={() => runAction(candidate, 'resolve')}
@@ -396,6 +418,7 @@ export function AccountActionCandidatesPage() {
                                 {t('account_actions.resolve')}
                               </Button>
                               <Button
+                                writeAction
                                 variant="ghost"
                                 size="xs"
                                 onClick={() => runAction(candidate, 'ignore')}
@@ -404,6 +427,7 @@ export function AccountActionCandidatesPage() {
                                 {t('account_actions.ignore')}
                               </Button>
                               <Button
+                                writeAction
                                 variant="danger"
                                 size="xs"
                                 onClick={() => confirmDelete(candidate)}
