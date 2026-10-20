@@ -104,6 +104,7 @@ const enSidebar: DefaultTheme.Sidebar = [
       { text: 'Monitoring', link: '/en/manual/monitoring' },
       { text: 'Usage Analytics', link: '/en/manual/usage-analytics' },
       { text: 'Account Inspection (Codex / xAI)', link: '/en/manual/codex-inspection' },
+      { text: 'Feishu Account Notifications', link: '/en/manual/feishu-notifications' },
       { text: 'Account Action Queue', link: '/en/manual/account-actions' },
       { text: 'Plugin Management', link: '/en/manual/plugins' },
       { text: 'Configuration', link: '/en/manual/configuration' },
