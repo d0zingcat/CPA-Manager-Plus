@@ -84,3 +84,7 @@ Use [Usage Analytics](./usage-analytics.md) for cost breakdowns; cost is not par
 ## Security Notes
 
 Credential files contain sensitive data. Do not share full JSON, OAuth tokens, API keys, Management Keys, `Set-Cookie`, or unredacted Authorization Headers. For troubleshooting, share sanitized request summaries, account-state screenshots, and log timestamps.
+
+## Account Event Notifications
+
+Manager Server supports optional [Feishu account event notifications](./feishu-notifications.md) for explicit reauthentication, quota exhaustion, and recovery evidence. Notifications are independent of inspection thresholds and account actions.

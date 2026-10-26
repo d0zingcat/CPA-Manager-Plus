@@ -185,13 +185,7 @@ const BUILT_IN_PROVIDERS: BuiltInProviderDefinition[] = [
 
 const BUILT_IN_PROVIDER_IDS = new Set<string>(BUILT_IN_PROVIDERS.map((provider) => provider.id));
 
-const CALLBACK_SUPPORTED = new Set<string>([
-  'codex',
-  'anthropic',
-  'antigravity',
-  'xai',
-  'devin',
-]);
+const CALLBACK_SUPPORTED = new Set<string>(['codex', 'anthropic', 'antigravity', 'xai', 'devin']);
 const XAI_CALLBACK_URL = 'http://127.0.0.1:56121/callback';
 const SUCCESS_RESET_DELAY_MS = 5000;
 const getProviderI18nPrefix = (provider: BuiltInOAuthProvider) => provider.replace('-', '_');
@@ -840,8 +834,7 @@ export function OAuthPage() {
     } catch (err: unknown) {
       if (!isProviderAttemptCurrent(provider, attempt)) return;
       const message = getErrorMessage(err);
-      const cancelErrorMessage =
-        message || t('auth_login.devin_oauth_cancel_error');
+      const cancelErrorMessage = message || t('auth_login.devin_oauth_cancel_error');
       updateProviderState(provider, {
         cancelling: false,
         cancelError: cancelErrorMessage,
@@ -1122,6 +1115,7 @@ export function OAuthPage() {
                 }
                 extra={
                   <Button
+                    writeAction
                     onClick={() => startAuth(provider.id)}
                     loading={state.polling}
                     disabled={provider.id === 'devin' && Boolean(state.state)}
@@ -1138,7 +1132,9 @@ export function OAuthPage() {
                       <div className={styles.authUrlValue}>{state.url}</div>
                       {state.userCode && (
                         <div className={styles.deviceCodeSection}>
-                          <div className={styles.authUrlLabel}>{t('auth_login.device_code_label')}</div>
+                          <div className={styles.authUrlLabel}>
+                            {t('auth_login.device_code_label')}
+                          </div>
                           <div className={styles.deviceCodeRow}>
                             <span
                               className={styles.deviceCodeValue}
@@ -1181,9 +1177,7 @@ export function OAuthPage() {
                         )}
                       </div>
                       {state.cancelError && (
-                        <div className="status-badge error">
-                          {state.cancelError}
-                        </div>
+                        <div className="status-badge error">{state.cancelError}</div>
                       )}
                     </div>
                   )}
@@ -1226,6 +1220,7 @@ export function OAuthPage() {
                       />
                       <div className={styles.callbackActions}>
                         <Button
+                          writeAction
                           variant="secondary"
                           size="sm"
                           onClick={() => submitCallback(provider.id)}
@@ -1281,7 +1276,7 @@ export function OAuthPage() {
             </span>
           }
           extra={
-            <Button onClick={handleVertexImport} loading={vertexState.loading}>
+            <Button writeAction onClick={handleVertexImport} loading={vertexState.loading}>
               {t('vertex_import.import_button')}
             </Button>
           }

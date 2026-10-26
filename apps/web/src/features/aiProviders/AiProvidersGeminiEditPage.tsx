@@ -256,10 +256,7 @@ export function AiProvidersGeminiEditPage() {
     });
   }, [discoveredModels, modelDiscoverySearch]);
   const configuredModelNames = useMemo(
-    () =>
-      new Set(
-        normalizedModels.map((entry) => entry.name.trim().toLowerCase()).filter(Boolean)
-      ),
+    () => new Set(normalizedModels.map((entry) => entry.name.trim().toLowerCase()).filter(Boolean)),
     [normalizedModels]
   );
   const visibleDiscoveredModelNames = useMemo(
@@ -522,11 +519,13 @@ export function AiProvidersGeminiEditPage() {
       } else {
         await providersApi.createGeminiKey(payload);
       }
-      const syncedList = await providersApi.getGeminiKeys().catch(() =>
-        editIndex !== null
-          ? configs.map((item, index) => (index === editIndex ? payload : item))
-          : [...configs, payload]
-      );
+      const syncedList = await providersApi
+        .getGeminiKeys()
+        .catch(() =>
+          editIndex !== null
+            ? configs.map((item, index) => (index === editIndex ? payload : item))
+            : [...configs, payload]
+        );
       updateConfigValue('gemini-api-key', syncedList);
       clearCache('gemini-api-key');
       showNotification(
@@ -584,6 +583,7 @@ export function AiProvidersGeminiEditPage() {
             {t('common.back')}
           </Button>
           <Button
+            writeAction
             size="sm"
             onClick={handleSave}
             loading={saving}
@@ -678,6 +678,7 @@ export function AiProvidersGeminiEditPage() {
                 </label>
                 <div className={styles.modelConfigToolbar}>
                   <Button
+                    writeAction
                     variant="secondary"
                     size="sm"
                     onClick={() =>

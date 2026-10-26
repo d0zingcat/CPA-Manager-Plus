@@ -9,10 +9,7 @@ import type { ApiClientRequestScope } from '@/services/api/client';
 import { useNotificationStore } from '@/stores';
 import { copyToClipboard } from '@/utils/clipboard';
 import { normalizeCodexMemberSnapshot } from '@/utils/authFileCredentialIdentity';
-import {
-  isCodexReauthReconciliationError,
-  type CodexReauthTarget,
-} from './codexReauthModel';
+import { isCodexReauthReconciliationError, type CodexReauthTarget } from './codexReauthModel';
 import styles from './CodexReauthDialog.module.scss';
 
 type CodexReauthStatus =
@@ -567,6 +564,7 @@ export function CodexReauthDialog({
           />
           <div className={styles.callbackActions}>
             <Button
+              writeAction
               type="button"
               size="sm"
               onClick={() => void submitCallback()}

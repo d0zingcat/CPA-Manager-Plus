@@ -297,6 +297,7 @@ export function AiProvidersClaudeEditPage() {
             {t('common.back')}
           </Button>
           <Button
+            writeAction
             size="sm"
             onClick={() => void handleSave()}
             loading={saving}
@@ -381,6 +382,7 @@ export function AiProvidersClaudeEditPage() {
                 </label>
                 <div className={styles.modelConfigToolbar}>
                   <Button
+                    writeAction
                     variant="secondary"
                     size="sm"
                     onClick={() =>
@@ -518,9 +520,7 @@ export function AiProvidersClaudeEditPage() {
                 disabled={saving || disableControls || isTesting}
                 ariaLabel={t('ai_providers.rebuild_mid_system_message_label')}
               />
-              <div className="hint">
-                {t('ai_providers.rebuild_mid_system_message_hint')}
-              </div>
+              <div className="hint">{t('ai_providers.rebuild_mid_system_message_hint')}</div>
             </div>
 
             <div className="form-group">

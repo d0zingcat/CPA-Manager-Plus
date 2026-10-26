@@ -1,0 +1,18 @@
+.card {
+  border: 1px solid var(--border-color, #aaa);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.actions,
+.secret {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.secret code {
+  overflow-wrap: anywhere;
+  user-select: all;
+}

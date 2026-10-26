@@ -1934,6 +1934,7 @@ export function UsageMaintenancePage() {
                 <span className={styles.srOnlyMobile}>{t('usage_maintenance.export_online')}</span>
               </Button>
               <Button
+                writeAction
                 size="sm"
                 onClick={() => updateNavigation({ panel: 'import', sessionId: null })}
               >

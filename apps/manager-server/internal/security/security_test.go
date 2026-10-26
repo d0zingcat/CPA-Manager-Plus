@@ -306,3 +306,42 @@ func isAlnum(value string) bool {
 	}
 	return value != ""
 }
+
+func TestReadOnlyDataKeyUsesStartupFormatsAndNeverCreates(t *testing.T) {
+	key := []byte("0123456789abcdef0123456789abcdef")
+	path := filepath.Join(t.TempDir(), "existing.key")
+	for _, format := range []string{string(key), base64.RawStdEncoding.EncodeToString(key), base64.StdEncoding.EncodeToString(key), base64.RawURLEncoding.EncodeToString(key)} {
+		if err := os.WriteFile(path, []byte(format+"\n"), 0600); err != nil {
+			t.Fatal(err)
+		}
+		read, err := LoadDataKey("", path)
+		if err != nil || string(read) != string(key) {
+			t.Fatal("read-only key format differs from startup")
+		}
+		startup, created, err := LoadOrCreateDataKey("", path)
+		if err != nil || created || string(startup) != string(read) {
+			t.Fatal("startup does not share read-only key parser")
+		}
+	}
+	missing := filepath.Join(t.TempDir(), "missing-dir", "data.key")
+	if _, err := LoadDataKey("", missing); err == nil {
+		t.Fatal("missing key accepted")
+	}
+	if _, err := os.Stat(filepath.Dir(missing)); !os.IsNotExist(err) {
+		t.Fatal("read-only key load created directories")
+	}
+	if err := os.WriteFile(path, []byte("invalid"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := LoadOrCreateDataKey("", path); err == nil {
+		t.Fatal("invalid key file was overwritten")
+	}
+	env, err := LoadDataKey("explicit-raw-key", missing)
+	if err != nil {
+		t.Fatal(err)
+	}
+	startup, created, err := LoadOrCreateDataKey("explicit-raw-key", missing)
+	if err != nil || created || string(startup) != string(env) {
+		t.Fatal("environment key precedence differs")
+	}
+}

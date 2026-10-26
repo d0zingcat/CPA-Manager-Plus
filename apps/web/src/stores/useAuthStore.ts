@@ -1,9 +1,12 @@
+import { setReadonlyCredential } from '@/services/api/readonlyAccess';
 /**
  * 认证状态管理
  * 从原项目 src/modules/login.js 和 src/core/connection.js 迁移
  */
 
 import { create } from 'zustand';
+import { isDemoMode } from '@/features/demo/demoMode';
+import { accessApi, type AccessRole } from '@/services/api/access';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
   AuthSessionMode,
@@ -26,6 +29,7 @@ import { sha256Hex } from '@/utils/apiKeyHash';
 import { getObfuscationVersion } from '@/utils/encryption';
 
 interface AuthStoreState extends AuthState {
+  role: AccessRole;
   sessionMode: AuthSessionMode | '';
   sessionPanelBase: string;
   connectionStatus: ConnectionStatus;
@@ -155,6 +159,7 @@ export const useAuthStore = create<AuthStoreState>()(
     (set, get) => ({
       // 初始状态
       isAuthenticated: false,
+      role: 'admin',
       apiBase: '',
       managementKey: '',
       rememberPassword: false,
@@ -261,9 +266,15 @@ export const useAuthStore = create<AuthStoreState>()(
               console.warn('Auto login failed:', error);
 
               const status =
-                error && typeof error === 'object' && 'status' in error && typeof (error as { status: unknown }).status === 'number'
+                error &&
+                typeof error === 'object' &&
+                'status' in error &&
+                typeof (error as { status: unknown }).status === 'number'
                   ? (error as { status: number }).status
-                  : error && typeof error === 'object' && 'statusCode' in error && typeof (error as { statusCode: unknown }).statusCode === 'number'
+                  : error &&
+                      typeof error === 'object' &&
+                      'statusCode' in error &&
+                      typeof (error as { statusCode: unknown }).statusCode === 'number'
                     ? (error as { statusCode: number }).statusCode
                     : undefined;
 
@@ -319,12 +330,10 @@ export const useAuthStore = create<AuthStoreState>()(
         const sessionPanelBase = normalizeApiBase(
           credentials.sessionPanelBase || get().sessionPanelBase
         );
+        let role: AccessRole = 'admin';
         const quotaCacheScope = sha256Hex(`${apiBase}\u0000${managementKey}`);
 
-        const markAuthenticated = (
-          result: LoginResult = {},
-          onAccepted?: () => void
-        ) => {
+        const markAuthenticated = (result: LoginResult = {}, onAccepted?: () => void) => {
           if (pendingLegacyRestoreInFlight) {
             if (
               pendingLegacyAuthSnapshot &&
@@ -346,12 +355,18 @@ export const useAuthStore = create<AuthStoreState>()(
           deferAuthPersistence = false;
           clearLegacyAuthKeys();
 
+          setReadonlyCredential(managementKey, role === 'usage_viewer');
+          if (role === 'usage_viewer') {
+            useConfigStore.getState().clearCache();
+            useQuotaStore.getState().clearQuotaCache();
+          }
           onAccepted?.();
 
           useQuotaStore.getState().activateQuotaCacheScope(quotaCacheScope);
           apiClient.setConfig({ apiBase, managementKey });
           set({
             isAuthenticated: true,
+            role,
             apiBase,
             managementKey,
             rememberPassword,
@@ -384,6 +399,29 @@ export const useAuthStore = create<AuthStoreState>()(
             managementKey,
           });
 
+          if (sessionMode === 'manager_embedded' && !(__DEMO_SITE__ && isDemoMode())) {
+            try {
+              const session = await accessApi.session(apiBase);
+              if (session.role !== 'admin' && session.role !== 'usage_viewer') {
+                throw new Error('Invalid access role');
+              }
+              role = session.role;
+              if (role === 'usage_viewer') {
+                return markAuthenticated({}, () => {
+                  useUsageServiceStore
+                    .getState()
+                    .setUsageServiceConfig(
+                      { enabled: true, serviceBase: apiBase },
+                      { panelBase: sessionPanelBase || apiBase, panelHostMode: 'manager_embedded' }
+                    );
+                });
+              }
+            } catch (error) {
+              // Only an older server without this endpoint can use legacy login.
+              if ((error as { status?: number }).status !== 404) throw error;
+            }
+          }
+
           // 测试连接 - 获取配置
           try {
             await useConfigStore.getState().fetchConfig(undefined, true);
@@ -392,22 +430,19 @@ export const useAuthStore = create<AuthStoreState>()(
               throw error;
             }
             await usageServiceApi.getManagerConfig(apiBase, managementKey);
-            return markAuthenticated(
-              { recoveryMode: 'manager_config' },
-              () => {
-                useConfigStore.getState().clearCache();
-                useUsageServiceStore.getState().setUsageServiceConfig(
-                  {
-                    enabled: true,
-                    serviceBase: apiBase,
-                  },
-                  {
-                    panelBase: sessionPanelBase || apiBase,
-                    panelHostMode: 'manager_embedded',
-                  }
-                );
-              }
-            );
+            return markAuthenticated({ recoveryMode: 'manager_config' }, () => {
+              useConfigStore.getState().clearCache();
+              useUsageServiceStore.getState().setUsageServiceConfig(
+                {
+                  enabled: true,
+                  serviceBase: apiBase,
+                },
+                {
+                  panelBase: sessionPanelBase || apiBase,
+                  panelHostMode: 'manager_embedded',
+                }
+              );
+            });
           }
 
           // 登录成功
@@ -430,6 +465,7 @@ export const useAuthStore = create<AuthStoreState>()(
 
       // 登出
       logout: () => {
+        setReadonlyCredential('', false);
         pendingLegacyRestoreInFlight = false;
         pendingLegacyAuthSnapshot = null;
         deferAuthPersistence = false;
@@ -442,6 +478,7 @@ export const useAuthStore = create<AuthStoreState>()(
         apiClient.setConfig({ apiBase: '', managementKey: '' });
         set({
           isAuthenticated: false,
+          role: 'admin',
           apiBase: '',
           managementKey: '',
           serverVersion: null,
@@ -474,7 +511,31 @@ export const useAuthStore = create<AuthStoreState>()(
             serverBuildDate: null,
           });
 
-          // 验证连接
+          if (get().sessionMode === 'manager_embedded') {
+            try {
+              const session = await accessApi.session(apiBase);
+              if (session.role !== 'admin' && session.role !== 'usage_viewer')
+                throw new Error('Invalid access role');
+              setReadonlyCredential(managementKey, session.role === 'usage_viewer');
+              set({ role: session.role });
+              if (session.role === 'usage_viewer') {
+                useConfigStore.getState().clearCache();
+                useModelsStore.getState().clearCache();
+                useQuotaStore.getState().clearQuotaCache();
+                useUsageServiceStore.getState().setUsageServiceConfig(
+                  { enabled: true, serviceBase: apiBase },
+                  {
+                    panelBase: get().sessionPanelBase || apiBase,
+                    panelHostMode: 'manager_embedded',
+                  }
+                );
+                set({ isAuthenticated: true, connectionStatus: 'connected' });
+                return true;
+              }
+            } catch (error) {
+              if ((error as { status?: number }).status !== 404) throw error;
+            }
+          }
           await useConfigStore.getState().fetchConfig();
 
           set({

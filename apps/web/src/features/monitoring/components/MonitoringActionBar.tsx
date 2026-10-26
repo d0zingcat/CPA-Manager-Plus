@@ -1,12 +1,8 @@
+import { ReadOnlyButton } from '@/features/readonly/ReadOnlyContext';
 import type { ChangeEvent, ReactNode, RefObject } from 'react';
 import { Link } from 'react-router-dom';
 import type { TFunction } from 'i18next';
-import {
-  IconDownload,
-  IconExternalLink,
-  IconFileText,
-  IconInbox,
-} from '@/components/ui/icons';
+import { IconDownload, IconExternalLink, IconFileText, IconInbox } from '@/components/ui/icons';
 import { ModelPriceAttentionLink } from '@/features/model-price-attention';
 import styles from '../MonitoringCenterPage.module.scss';
 
@@ -48,7 +44,7 @@ export function MonitoringActionBar({
   return (
     <section className={styles.actionBar} aria-label={t('common.action')}>
       <div className={styles.actionGroup}>
-        <button
+        <ReadOnlyButton
           type="button"
           className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
           onClick={() => void onUsageExport()}
@@ -61,8 +57,8 @@ export function MonitoringActionBar({
         >
           <IconDownload size={16} />
           <span>{usageExporting ? t('common.loading') : t('usage_stats.export')}</span>
-        </button>
-        <button
+        </ReadOnlyButton>
+        <ReadOnlyButton
           type="button"
           className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
           onClick={onUsageImportClick}
@@ -75,7 +71,7 @@ export function MonitoringActionBar({
         >
           <IconFileText size={16} />
           <span>{usageImporting ? t('common.loading') : t('usage_stats.import')}</span>
-        </button>
+        </ReadOnlyButton>
         {modelPricesAvailable ? (
           <ModelPriceAttentionLink variant="action-bar" className={styles.actionButton} />
         ) : null}

@@ -200,6 +200,9 @@ const (
 )
 
 func Migrate(db *sql.DB) error {
+	if err := migrateHealthNotifications(db); err != nil {
+		return err
+	}
 	monitoringSnapshot, err := inspectUsageMonitoringMigrationSnapshot(db)
 	if err != nil {
 		return err

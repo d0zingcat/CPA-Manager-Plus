@@ -184,9 +184,7 @@ export function AccountModelsTab({
           ? model.ruleModelId.trim().toLowerCase()
           : model.id.trim().toLowerCase();
       return (
-        aliasesByModelId.get(lookupKey) ??
-        aliasesByModelId.get(model.id.trim().toLowerCase()) ??
-        []
+        aliasesByModelId.get(lookupKey) ?? aliasesByModelId.get(model.id.trim().toLowerCase()) ?? []
       );
     },
     [aliasesByModelId]
@@ -251,6 +249,7 @@ export function AccountModelsTab({
         model.hasCredentialWildcardRule || model.globalPatterns.length > 0 || !globalRulesKnown;
       return (
         <Button
+          writeAction
           variant="secondary"
           size="xs"
           disabled={editingDisabled || !model.ruleModelIdResolved}
@@ -295,14 +294,13 @@ export function AccountModelsTab({
     }
     return (
       <Button
+        writeAction
         variant="secondary"
         size="xs"
         disabled={editingDisabled || !model.ruleModelIdResolved}
         onClick={() => updateExactRule(model, true)}
         title={
-          !model.ruleModelIdResolved
-            ? t('accounts.model_rule_mapping_unavailable')
-            : undefined
+          !model.ruleModelIdResolved ? t('accounts.model_rule_mapping_unavailable') : undefined
         }
       >
         {t('accounts.model_disable_for_credential')}
@@ -448,6 +446,7 @@ export function AccountModelsTab({
               {t('common.reset')}
             </Button>
             <Button
+              writeAction
               size="sm"
               onClick={() => void editor.save()}
               loading={state?.saving}

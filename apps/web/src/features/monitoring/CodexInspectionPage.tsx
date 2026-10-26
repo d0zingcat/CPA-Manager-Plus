@@ -1,3 +1,7 @@
+import { usePanelFeatureAvailability } from '@/hooks/usePanelFeatureAvailability';
+import { useReadOnly } from '@/features/readonly/readOnlyState';
+import { notificationsApi, type LocalHealthReportSummary } from '@/services/api/notifications';
+import { buildLocalHealthReport, localHealthSkippedSummary } from './model/localHealthReport';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -98,6 +102,10 @@ export function CodexInspectionPage({
   onOpenCredential,
 }: CodexInspectionPageProps = {}) {
   const { t, i18n } = useTranslation();
+  const notificationAvailability = usePanelFeatureAvailability();
+  const notificationReadOnly = useReadOnly();
+  const lastHealthReport = useRef('');
+  const healthReportMountedAt = useRef(Date.now());
   const navigate = useNavigate();
   const config = useConfigStore((state) => state.config);
   const apiBase = useAuthStore((state) => state.apiBase);
@@ -252,6 +260,64 @@ export function CodexInspectionPage({
       createLocalCredentialInspectionSnapshot(result, result.finishedAt || Date.now())
     );
   }, [connectionFingerprint, onSnapshotChange, result, resultConnectionFingerprint, runStatus]);
+
+  useEffect(() => {
+    if (
+      notificationReadOnly ||
+      (result && result.finishedAt < healthReportMountedAt.current) ||
+      !notificationAvailability.managerServiceAvailable ||
+      !result ||
+      result.finishedAt <= 0 ||
+      runStatus === 'running' ||
+      runStatus === 'paused' ||
+      resultConnectionFingerprint !== connectionFingerprint
+    )
+      return;
+    const reportKey = `${connectionFingerprint}:${result.startedAt}:${result.finishedAt}`;
+    if (lastHealthReport.current === reportKey) return;
+    const entries = buildLocalHealthReport(result);
+    if (!entries.length) return;
+    let cancelled = false;
+    const report = async () => {
+      for (let attempt = 0; attempt < 3 && !cancelled; attempt++) {
+        try {
+          const summaries: LocalHealthReportSummary[] = [];
+          for (let offset = 0; offset < entries.length && !cancelled; offset += 100) {
+            summaries.push(
+              await notificationsApi.reportLocal(
+                notificationAvailability.managerServiceBase,
+                entries.slice(offset, offset + 100)
+              )
+            );
+          }
+          if (!cancelled) {
+            lastHealthReport.current = reportKey;
+            const skipped = localHealthSkippedSummary(summaries);
+            if (skipped.count > 0) showNotification(t('feishu.report_skipped', skipped), 'warning');
+          }
+          return;
+        } catch {
+          if (attempt < 2)
+            await new Promise((resolve) => setTimeout(resolve, (attempt + 1) * 1000));
+          else if (!cancelled) showNotification(t('feishu.report_failed'), 'warning');
+        }
+      }
+    };
+    void report();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    notificationReadOnly,
+    notificationAvailability.managerServiceAvailable,
+    notificationAvailability.managerServiceBase,
+    result,
+    runStatus,
+    resultConnectionFingerprint,
+    connectionFingerprint,
+    showNotification,
+    t,
+  ]);
 
   const appendLog = useCallback(
     (level: CodexInspectionLogLevel, message: string, detail?: CodexInspectionLogDetail) => {
@@ -1390,7 +1456,7 @@ export function CodexInspectionPage({
               >
                 {t('monitoring.codex_inspection_settings_reset_button')}
               </Button>
-              <Button size="sm" onClick={handleSaveSettings}>
+              <Button writeAction size="sm" onClick={handleSaveSettings}>
                 {t('common.save')}
               </Button>
             </div>

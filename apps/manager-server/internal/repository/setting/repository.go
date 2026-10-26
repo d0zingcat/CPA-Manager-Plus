@@ -18,6 +18,8 @@ const adminCredentialKey = "admin_credential_v1"
 const bootstrapStateKey = "bootstrap_state_v1"
 
 type Repository interface {
+	LoadFeishuSettings(context.Context) (model.FeishuSettings, error)
+	SaveFeishuSettings(context.Context, model.FeishuSettings) error
 	SaveManagerConfig(ctx context.Context, cfg model.ManagerConfig) error
 	SaveManagerConfigAndSetup(ctx context.Context, cfg model.ManagerConfig, setup model.Setup) error
 	NormalizeLegacyConnectionStorage(ctx context.Context, cfg model.ManagerConfig, managerPresent bool, setup model.Setup, setupPresent bool) error
@@ -26,6 +28,8 @@ type Repository interface {
 	LoadAutomationSettings(ctx context.Context) (model.AutomationSettings, bool, error)
 	SaveSetup(ctx context.Context, setup model.Setup) error
 	LoadSetup(ctx context.Context) (model.Setup, bool, error)
+	SaveReadonlyCredential(ctx context.Context, credential model.AdminCredential) error
+	LoadReadonlyCredential(ctx context.Context) (model.AdminCredential, bool, error)
 	SaveAdminCredential(ctx context.Context, credential model.AdminCredential) error
 	LoadAdminCredential(ctx context.Context) (model.AdminCredential, bool, error)
 	SaveBootstrapState(ctx context.Context, state model.BootstrapState) error

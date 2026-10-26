@@ -1,3 +1,4 @@
+import { useReadOnly } from '@/features/readonly/readOnlyState';
 import {
   useCallback,
   useEffect,
@@ -32,11 +33,7 @@ import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { pluginsApi, pluginStoreApi } from '@/services/api';
 import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
 import { getErrorMessage, isRecord } from '@/utils/helpers';
-import type {
-  PluginConfigField,
-  PluginListEntry,
-  PluginListResponse,
-} from '@/types';
+import type { PluginConfigField, PluginListEntry, PluginListResponse } from '@/types';
 import {
   buildRepositoryURL,
   getPluginTitle,
@@ -193,6 +190,7 @@ function InstalledPluginsView({
   const configRequestSeq = useRef(0);
 
   const connected = connectionStatus === 'connected';
+  const readOnly = useReadOnly();
 
   const loadPlugins = useCallback(async () => {
     if (!connected) {
@@ -775,7 +773,7 @@ function InstalledPluginsView({
                       key: 'oauth',
                       label: t('plugin_management.oauth_login'),
                       icon: <IconKey size={14} />,
-                      disabled: !connected || actionBusy,
+                      disabled: readOnly || !connected || actionBusy,
                       onClick: () => navigate('/oauth'),
                     },
                   ]
@@ -784,14 +782,14 @@ function InstalledPluginsView({
                 key: 'reinstall',
                 label: t('plugin_management.reinstall_plugin'),
                 icon: <IconRefreshCw size={14} />,
-                disabled: !connected || actionBusy,
+                disabled: readOnly || !connected || actionBusy,
                 onClick: () => handleReinstallPlugin(plugin),
               },
               {
                 key: 'delete',
                 label: t('plugin_management.delete_plugin'),
                 icon: <IconTrash2 size={14} />,
-                disabled: !connected || actionBusy,
+                disabled: readOnly || !connected || actionBusy,
                 tone: 'danger',
                 onClick: () => handleDeletePlugin(plugin),
               },
@@ -924,7 +922,7 @@ function InstalledPluginsView({
             <Button variant="secondary" onClick={closeConfigDrawer} disabled={savingConfig}>
               {t('common.cancel')}
             </Button>
-            <Button onClick={handleSaveConfig} loading={savingConfig}>
+            <Button writeAction onClick={handleSaveConfig} loading={savingConfig}>
               {t('common.save')}
             </Button>
           </div>

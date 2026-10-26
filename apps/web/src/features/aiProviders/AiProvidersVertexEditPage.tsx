@@ -359,6 +359,7 @@ export function AiProvidersVertexEditPage() {
             {t('common.back')}
           </Button>
           <Button
+            writeAction
             size="sm"
             onClick={handleSave}
             loading={saving}

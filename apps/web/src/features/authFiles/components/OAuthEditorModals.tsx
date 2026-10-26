@@ -371,7 +371,12 @@ export function OAuthExcludedEditorModal({
           <Button variant="secondary" onClick={requestClose} disabled={saving}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={() => void handleSave()} loading={saving} disabled={!canSave}>
+          <Button
+            writeAction
+            onClick={() => void handleSave()}
+            loading={saving}
+            disabled={!canSave}
+          >
             {t('oauth_excluded.save')}
           </Button>
         </>
@@ -716,7 +721,12 @@ export function OAuthModelAliasEditorModal({
           <Button variant="secondary" onClick={requestClose} disabled={saving}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={() => void handleSave()} loading={saving} disabled={!canSave}>
+          <Button
+            writeAction
+            onClick={() => void handleSave()}
+            loading={saving}
+            disabled={!canSave}
+          >
             {t('oauth_model_alias.save')}
           </Button>
         </>
@@ -780,6 +790,7 @@ export function OAuthModelAliasEditorModal({
             <div className={styles.mappingsHeader}>
               <div className={styles.mappingsTitle}>{t('oauth_model_alias.alias_label')}</div>
               <Button
+                writeAction
                 variant="secondary"
                 size="sm"
                 onClick={addMappingEntry}
